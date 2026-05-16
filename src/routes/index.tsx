@@ -1,26 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import SweetPrompts from "@/components/SweetPrompts";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Sweet Prompts — AI Microstock Prompt Studio" },
+      { name: "description", content: "Generate JPG, PNG, silhouette and bulk AI image prompts for Adobe Stock, Shutterstock, and more — 5 to 200 prompts at a time." },
+      { property: "og:title", content: "Sweet Prompts — AI Microstock Prompt Studio" },
+      { property: "og:description", content: "Bulk AI prompt generation for microstock JPG and PNG assets." },
+    ],
+  }),
+  component: () => <SweetPrompts />,
 });
-
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
-}
