@@ -31,8 +31,9 @@ const THEMES = {
 
 type ThemeKey = keyof typeof THEMES;
 
-let CURRENT: typeof THEMES.sweet = THEMES.sweet;
-const C = new Proxy({} as typeof THEMES.sweet, {
+type Theme = { [K in keyof typeof THEMES.sweet]: string };
+let CURRENT: Theme = THEMES.sweet as Theme;
+const C = new Proxy({} as Theme, {
   get(_, p: string) { return (CURRENT as any)[p]; },
 });
 
