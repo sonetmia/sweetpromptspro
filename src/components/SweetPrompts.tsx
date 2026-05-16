@@ -810,8 +810,8 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
 export default function App() {
   const [page, setPage] = useState("home");
   const [themeKey, setThemeKeyRaw] = useState<ThemeKey>(() => (tryLoad("sp_theme", "sweet") as ThemeKey));
-  CURRENT = THEMES[themeKey];
-  function setThemeKey(t: ThemeKey) { setThemeKeyRaw(t); trySave("sp_theme", t); CURRENT = THEMES[t]; }
+  CURRENT = THEMES[themeKey] as Theme;
+  function setThemeKey(t: ThemeKey) { setThemeKeyRaw(t); trySave("sp_theme", t); CURRENT = THEMES[t] as Theme; }
 
   const meta = PAGE_META[page] || PAGE_META.home;
   const isFuturistic = themeKey === "futuristic";
