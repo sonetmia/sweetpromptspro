@@ -114,6 +114,9 @@ const FONTS_LINK = "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;8
 
 // ── API ───────────────────────────────────────────────────────────────────────
 async function callAI(system: string, user: string, maxTokens = 1400): Promise<string> {
+  const cfg = loadApiCfg();
+  if (cfg.provider === "gemini" && cfg.key) return callGemini(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
   const r = await callAIFn({ data: { system, user, maxTokens } });
   return r.text;
 }
