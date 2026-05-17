@@ -1024,6 +1024,7 @@ export default function App() {
         @keyframes sp { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
         @keyframes neonPulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+        @keyframes heartBeat { 0%,100% { transform: scale(1); } 25% { transform: scale(1.12); } 50% { transform: scale(1); } 75% { transform: scale(1.08); } }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: ${C.bg}; font-family: ${bodyFont}; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
