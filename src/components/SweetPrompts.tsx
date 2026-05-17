@@ -1,5 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { callAIFn } from "@/lib/ai.functions";
+
+// ── User API key config (Gemini / Groq) ───────────────────────────────────────
+type Provider = "lovable" | "gemini" | "groq";
+function loadApiCfg(): { provider: Provider; key: string; model: string } {
+  try {
+    const raw = localStorage.getItem("sp_api_cfg");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { provider: "lovable", key: "", model: "" };
+}
+function saveApiCfg(c: { provider: Provider; key: string; model: string }) {
+  try { localStorage.setItem("sp_api_cfg", JSON.stringify(c)); } catch {}
+}
+
+async function callGemini(system: string, user: string, key: string, model: string, maxTokens: number) {
+  const m = model || "gemini-2.0-flash";
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
+}
+
+async function callGroq(system: string, user: string, key: string, model: string, maxTokens: number) {
+  const m = model || "llama-3.3-70b-versatile";
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: m, max_tokens: maxTokens, temperature: 0.9,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.choices?.[0]?.message?.content ?? "";
+}
+
+// ── Microstock risk validator ─────────────────────────────────────────────────
+const RISK_PATTERNS: { pattern: RegExp; category: string; reason: string }[] = [
+  { pattern: /\b(nike|adidas|puma|reebok|under armour|gucci|prada|louis vuitton|chanel|hermes|rolex|ferrari|lamborghini|porsche|tesla|bmw|mercedes|audi|toyota|honda|ford)\b/gi, category: "Brand", reason: "Trademarked brand name" },
+  { pattern: /\b(coca[- ]?cola|pepsi|starbucks|mcdonald'?s|burger king|kfc|subway|nestle|apple inc|iphone|ipad|macbook|android|samsung|google|microsoft|windows|facebook|instagram|tiktok|twitter|youtube|netflix|amazon|disney|pixar|marvel|dc comics)\b/gi, category: "Trademark", reason: "Trademarked product / company" },
+  { pattern: /\b(mickey mouse|donald duck|spider[- ]?man|batman|superman|iron man|captain america|harry potter|hogwarts|star wars|jedi|yoda|darth vader|pokemon|pikachu|mario|zelda|sonic|barbie|hello kitty|simpsons|minions)\b/gi, category: "Character", reason: "Copyrighted character" },
+  { pattern: /\b(eiffel tower|statue of liberty|hollywood sign|sydney opera house|big ben|burj khalifa|taj mahal|colosseum)\b/gi, category: "Landmark", reason: "Restricted landmark (editorial only)" },
+  { pattern: /\b(face|portrait|close[- ]?up of (a )?(man|woman|person|girl|boy|child|kid)|recognizable (person|face)|celebrity|famous person)\b/gi, category: "Person", reason: "Identifiable person — needs model release" },
+  { pattern: /\b(logo|brand logo|trademark|copyrighted|signature|tattoo of [a-z]+)\b/gi, category: "IP", reason: "Possible IP element" },
+  { pattern: /\b(banksy|picasso|van gogh|monet|warhol|dali) style\b/gi, category: "Artist", reason: "Living/named artist style may be restricted" },
+];
+
+type RiskHit = { promptIndex: number; category: string; reason: string; match: string };
+function validatePrompts(prompts: string[]): RiskHit[] {
+  const hits: RiskHit[] = [];
+  prompts.forEach((p, i) => {
+    RISK_PATTERNS.forEach(({ pattern, category, reason }) => {
+      pattern.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = pattern.exec(p)) !== null) {
+        hits.push({ promptIndex: i, category, reason, match: m[0] });
+        if (!pattern.global) break;
+      }
+    });
+  });
+  return hits;
+}
 
 // ── Themes ────────────────────────────────────────────────────────────────────
 const THEMES = {
