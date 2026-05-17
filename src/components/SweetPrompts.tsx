@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { callAIFn } from "@/lib/ai.functions";
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
