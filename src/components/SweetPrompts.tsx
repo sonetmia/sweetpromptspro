@@ -233,15 +233,54 @@ function Card({ text, index, total, badge }: { text: string; index: number; tota
 }
 
 function ExportBar({ prompts }: { prompts: string[] }) {
+  const [modal, setModal] = useState<{ hits: RiskHit[]; format: "txt" | "csv" } | null>(null);
   if (!prompts.length) return null;
+  const hits = validatePrompts(prompts);
+  const risky = hits.length > 0;
+  const doDownload = (fmt: "txt" | "csv") => {
+    if (risky) { setModal({ hits, format: fmt }); return; }
+    fmt === "txt" ? dlTxt(prompts) : dlCsv(prompts);
+  };
+  const confirmDl = () => { if (modal) { modal.format === "txt" ? dlTxt(prompts) : dlCsv(prompts); setModal(null); } };
+  const riskySet = new Set(hits.map(h => h.promptIndex));
+  const cleaned = prompts.filter((_, i) => !riskySet.has(i));
+  const downloadCleaned = (fmt: "txt" | "csv") => { fmt === "txt" ? dlTxt(cleaned) : dlCsv(cleaned); setModal(null); };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0 8px", flexWrap: "wrap" }}>
       <span style={{ fontSize: 11, color: C.muted, background: C.card2, border: `1px solid ${C.border}`, borderRadius: 20, padding: "2px 10px" }}>{prompts.length} result{prompts.length !== 1 ? "s" : ""}</span>
+      {risky && <span style={{ fontSize: 11, color: C.red, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.35)", borderRadius: 20, padding: "2px 10px", fontWeight: 600 }}>⚠ {hits.length} risk{hits.length !== 1 ? "s" : ""}</span>}
       <div style={{ marginLeft: "auto", display: "flex", gap: 7 }}>
-        <button onClick={() => dlTxt(prompts)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ TXT</button>
-        <button onClick={() => dlCsv(prompts)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ CSV</button>
+        <button onClick={() => doDownload("txt")} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ TXT</button>
+        <button onClick={() => doDownload("csv")} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ CSV</button>
         <button onClick={() => copy(prompts.join("\n\n---\n\n"))} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>⧉ Copy All</button>
       </div>
+      {modal && (
+        <div onClick={() => setModal(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 16, padding: 24, maxWidth: 600, width: "100%", maxHeight: "85vh", overflow: "auto" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.red, marginBottom: 6, fontFamily: "var(--display)" }}>⚠ Microstock Risk Check</div>
+            <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.6 }}>{modal.hits.length} potential rejection risk{modal.hits.length !== 1 ? "s" : ""} found in {new Set(modal.hits.map(h => h.promptIndex)).size} prompt{new Set(modal.hits.map(h => h.promptIndex)).size !== 1 ? "s" : ""}. Review before submitting to Adobe Stock / Shutterstock.</p>
+            <div style={{ maxHeight: 320, overflow: "auto", marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+              {modal.hits.map((h, i) => (
+                <div key={i} style={{ padding: "10px 14px", borderBottom: i < modal.hits.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 12.5 }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: C.red, background: "rgba(239,68,68,.12)", borderRadius: 5, padding: "1px 7px" }}>#{h.promptIndex + 1}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: C.orange, background: C.orangeSoft, borderRadius: 5, padding: "1px 7px" }}>{h.category}</span>
+                    <span style={{ fontSize: 11, color: C.muted }}>"{h.match}"</span>
+                  </div>
+                  <div style={{ color: C.muted, fontSize: 11.5 }}>{h.reason}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <button onClick={() => setModal(null)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 8, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              {cleaned.length > 0 && cleaned.length < prompts.length && (
+                <button onClick={() => downloadCleaned(modal.format)} style={{ background: C.green, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✓ Download {cleaned.length} Safe Only</button>
+              )}
+              <button onClick={confirmDl} style={{ background: C.red, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>↓ Download All Anyway</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
