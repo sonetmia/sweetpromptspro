@@ -1052,6 +1052,7 @@ export default function App() {
             <PageContent page={page} themeKey={themeKey} setThemeKey={setThemeKey} />
           </div>
         )}
+        <HeartButton />
       </div>
     </>
   );
