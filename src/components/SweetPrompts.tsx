@@ -1,6 +1,77 @@
 import { useState } from "react";
 import { callAIFn } from "@/lib/ai.functions";
 
+// ── User API key config (Gemini / Groq) ───────────────────────────────────────
+type Provider = "lovable" | "gemini" | "groq";
+function loadApiCfg(): { provider: Provider; key: string; model: string } {
+  try {
+    const raw = localStorage.getItem("sp_api_cfg");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { provider: "lovable", key: "", model: "" };
+}
+function saveApiCfg(c: { provider: Provider; key: string; model: string }) {
+  try { localStorage.setItem("sp_api_cfg", JSON.stringify(c)); } catch {}
+}
+
+async function callGemini(system: string, user: string, key: string, model: string, maxTokens: number) {
+  const m = model || "gemini-2.0-flash";
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
+}
+
+async function callGroq(system: string, user: string, key: string, model: string, maxTokens: number) {
+  const m = model || "llama-3.3-70b-versatile";
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: m, max_tokens: maxTokens, temperature: 0.9,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.choices?.[0]?.message?.content ?? "";
+}
+
+// ── Microstock risk validator ─────────────────────────────────────────────────
+const RISK_PATTERNS: { pattern: RegExp; category: string; reason: string }[] = [
+  { pattern: /\b(nike|adidas|puma|reebok|under armour|gucci|prada|louis vuitton|chanel|hermes|rolex|ferrari|lamborghini|porsche|tesla|bmw|mercedes|audi|toyota|honda|ford)\b/gi, category: "Brand", reason: "Trademarked brand name" },
+  { pattern: /\b(coca[- ]?cola|pepsi|starbucks|mcdonald'?s|burger king|kfc|subway|nestle|apple inc|iphone|ipad|macbook|android|samsung|google|microsoft|windows|facebook|instagram|tiktok|twitter|youtube|netflix|amazon|disney|pixar|marvel|dc comics)\b/gi, category: "Trademark", reason: "Trademarked product / company" },
+  { pattern: /\b(mickey mouse|donald duck|spider[- ]?man|batman|superman|iron man|captain america|harry potter|hogwarts|star wars|jedi|yoda|darth vader|pokemon|pikachu|mario|zelda|sonic|barbie|hello kitty|simpsons|minions)\b/gi, category: "Character", reason: "Copyrighted character" },
+  { pattern: /\b(eiffel tower|statue of liberty|hollywood sign|sydney opera house|big ben|burj khalifa|taj mahal|colosseum)\b/gi, category: "Landmark", reason: "Restricted landmark (editorial only)" },
+  { pattern: /\b(face|portrait|close[- ]?up of (a )?(man|woman|person|girl|boy|child|kid)|recognizable (person|face)|celebrity|famous person)\b/gi, category: "Person", reason: "Identifiable person — needs model release" },
+  { pattern: /\b(logo|brand logo|trademark|copyrighted|signature|tattoo of [a-z]+)\b/gi, category: "IP", reason: "Possible IP element" },
+  { pattern: /\b(banksy|picasso|van gogh|monet|warhol|dali) style\b/gi, category: "Artist", reason: "Living/named artist style may be restricted" },
+];
+
+type RiskHit = { promptIndex: number; category: string; reason: string; match: string };
+function validatePrompts(prompts: string[]): RiskHit[] {
+  const hits: RiskHit[] = [];
+  prompts.forEach((p, i) => {
+    RISK_PATTERNS.forEach(({ pattern, category, reason }) => {
+      pattern.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = pattern.exec(p)) !== null) {
+        hits.push({ promptIndex: i, category, reason, match: m[0] });
+        if (!pattern.global) break;
+      }
+    });
+  });
+  return hits;
+}
+
 // ── Themes ────────────────────────────────────────────────────────────────────
 const THEMES = {
   simple: {
@@ -43,6 +114,9 @@ const FONTS_LINK = "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;8
 
 // ── API ───────────────────────────────────────────────────────────────────────
 async function callAI(system: string, user: string, maxTokens = 1400): Promise<string> {
+  const cfg = loadApiCfg();
+  if (cfg.provider === "gemini" && cfg.key) return callGemini(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
   const r = await callAIFn({ data: { system, user, maxTokens } });
   return r.text;
 }
@@ -159,15 +233,54 @@ function Card({ text, index, total, badge }: { text: string; index: number; tota
 }
 
 function ExportBar({ prompts }: { prompts: string[] }) {
+  const [modal, setModal] = useState<{ hits: RiskHit[]; format: "txt" | "csv" } | null>(null);
   if (!prompts.length) return null;
+  const hits = validatePrompts(prompts);
+  const risky = hits.length > 0;
+  const doDownload = (fmt: "txt" | "csv") => {
+    if (risky) { setModal({ hits, format: fmt }); return; }
+    fmt === "txt" ? dlTxt(prompts) : dlCsv(prompts);
+  };
+  const confirmDl = () => { if (modal) { modal.format === "txt" ? dlTxt(prompts) : dlCsv(prompts); setModal(null); } };
+  const riskySet = new Set(hits.map(h => h.promptIndex));
+  const cleaned = prompts.filter((_, i) => !riskySet.has(i));
+  const downloadCleaned = (fmt: "txt" | "csv") => { fmt === "txt" ? dlTxt(cleaned) : dlCsv(cleaned); setModal(null); };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0 8px", flexWrap: "wrap" }}>
       <span style={{ fontSize: 11, color: C.muted, background: C.card2, border: `1px solid ${C.border}`, borderRadius: 20, padding: "2px 10px" }}>{prompts.length} result{prompts.length !== 1 ? "s" : ""}</span>
+      {risky && <span style={{ fontSize: 11, color: C.red, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.35)", borderRadius: 20, padding: "2px 10px", fontWeight: 600 }}>⚠ {hits.length} risk{hits.length !== 1 ? "s" : ""}</span>}
       <div style={{ marginLeft: "auto", display: "flex", gap: 7 }}>
-        <button onClick={() => dlTxt(prompts)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ TXT</button>
-        <button onClick={() => dlCsv(prompts)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ CSV</button>
+        <button onClick={() => doDownload("txt")} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ TXT</button>
+        <button onClick={() => doDownload("csv")} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>↓ CSV</button>
         <button onClick={() => copy(prompts.join("\n\n---\n\n"))} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 7, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>⧉ Copy All</button>
       </div>
+      {modal && (
+        <div onClick={() => setModal(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 16, padding: 24, maxWidth: 600, width: "100%", maxHeight: "85vh", overflow: "auto" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.red, marginBottom: 6, fontFamily: "var(--display)" }}>⚠ Microstock Risk Check</div>
+            <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.6 }}>{modal.hits.length} potential rejection risk{modal.hits.length !== 1 ? "s" : ""} found in {new Set(modal.hits.map(h => h.promptIndex)).size} prompt{new Set(modal.hits.map(h => h.promptIndex)).size !== 1 ? "s" : ""}. Review before submitting to Adobe Stock / Shutterstock.</p>
+            <div style={{ maxHeight: 320, overflow: "auto", marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+              {modal.hits.map((h, i) => (
+                <div key={i} style={{ padding: "10px 14px", borderBottom: i < modal.hits.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 12.5 }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: C.red, background: "rgba(239,68,68,.12)", borderRadius: 5, padding: "1px 7px" }}>#{h.promptIndex + 1}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: C.orange, background: C.orangeSoft, borderRadius: 5, padding: "1px 7px" }}>{h.category}</span>
+                    <span style={{ fontSize: 11, color: C.muted }}>"{h.match}"</span>
+                  </div>
+                  <div style={{ color: C.muted, fontSize: 11.5 }}>{h.reason}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <button onClick={() => setModal(null)} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 8, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              {cleaned.length > 0 && cleaned.length < prompts.length && (
+                <button onClick={() => downloadCleaned(modal.format)} style={{ background: C.green, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✓ Download {cleaned.length} Safe Only</button>
+              )}
+              <button onClick={confirmDl} style={{ background: C.red, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>↓ Download All Anyway</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -612,7 +725,7 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
     <div>
       <div style={{ background: `${C.orange}12`, border: `1px solid ${C.orange}33`, borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.orange, marginBottom: 6 }}>⚡ How AI Works Here</div>
-        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>All tools run on <strong style={{ color: C.text }}>Lovable AI Gateway</strong> — zero setup, zero API keys needed. Just generate.</p>
+        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>By default, tools run on the <strong style={{ color: C.text }}>Lovable AI Gateway</strong> — no setup needed. You can also switch to your own <strong style={{ color: C.text }}>Gemini</strong> or <strong style={{ color: C.text }}>Groq</strong> API key below.</p>
       </div>
 
       <Divider label="Theme" />
@@ -645,11 +758,96 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
         })}
       </div>
 
+      <Divider label="AI Provider / API Key" />
+      <ApiKeySettings />
+
       <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 9, padding: "13px 15px", marginTop: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 5, textTransform: "uppercase" }}>🔒 Privacy</div>
-        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Your theme preference is saved locally. AI requests go through the secure Lovable AI Gateway.</p>
+        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Theme &amp; API keys are stored only in your browser (localStorage). Keys never leave your device except in direct calls to the provider you choose.</p>
       </div>
     </div>
+  );
+}
+
+function ApiKeySettings() {
+  const [cfg, setCfg] = useState(() => loadApiCfg());
+  const [saved, setSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testMsg, setTestMsg] = useState("");
+  function update(patch: Partial<typeof cfg>) {
+    const next = { ...cfg, ...patch };
+    setCfg(next); saveApiCfg(next); setSaved(true); setTimeout(() => setSaved(false), 1500);
+  }
+  async function test() {
+    setTesting(true); setTestMsg("");
+    try { const t = await callAI("Reply with: OK", "ping", 10); setTestMsg("✓ Connected: " + (t.slice(0, 50) || "(empty)")); }
+    catch (e: any) { setTestMsg("✗ " + e.message); }
+    finally { setTesting(false); }
+  }
+  const providers: { id: Provider; label: string; hint: string }[] = [
+    { id: "lovable", label: "Lovable AI (Default)", hint: "No key required, billed via workspace" },
+    { id: "gemini", label: "Google Gemini", hint: "Get key at aistudio.google.com" },
+    { id: "groq", label: "Groq AI", hint: "Get key at console.groq.com" },
+  ];
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10, marginBottom: 14 }}>
+        {providers.map(p => {
+          const active = cfg.provider === p.id;
+          return (
+            <button key={p.id} onClick={() => update({ provider: p.id })} style={{
+              background: active ? C.orangeSoft : C.card2, border: `2px solid ${active ? C.orange : C.border2}`,
+              borderRadius: 12, padding: "12px 14px", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+            }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? C.orange : C.text, marginBottom: 3 }}>{p.label}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>{p.hint}</div>
+            </button>
+          );
+        })}
+      </div>
+      {cfg.provider !== "lovable" && (
+        <>
+          <Inp label={`${cfg.provider === "gemini" ? "Gemini" : "Groq"} API Key`} value={cfg.key} onChange={(v: string) => update({ key: v })} placeholder={cfg.provider === "gemini" ? "AIza..." : "gsk_..."} type="password" />
+          <Inp label="Model (optional)" value={cfg.model} onChange={(v: string) => update({ model: v })} placeholder={cfg.provider === "gemini" ? "gemini-2.0-flash" : "llama-3.3-70b-versatile"} />
+        </>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <Btn onClick={test} loading={testing} label="🔌 Test Connection" color={C.blue} />
+        {saved && <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Saved</span>}
+        {testMsg && <span style={{ fontSize: 12, color: testMsg.startsWith("✓") ? C.green : C.red }}>{testMsg}</span>}
+      </div>
+    </div>
+  );
+}
+
+function HeartButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(true)} aria-label="Developer info"
+        style={{
+          position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: "50%",
+          background: `linear-gradient(135deg,${C.orange},${C.purple})`, border: "none", cursor: "pointer",
+          boxShadow: `0 6px 30px ${C.orange}88`, zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center",
+          animation: "heartBeat 1.6s ease-in-out infinite", color: "#fff", fontSize: 26,
+        }}>♥</button>
+      {open && (
+        <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.75)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 18, padding: 28, maxWidth: 380, width: "100%", textAlign: "center", position: "relative" }}>
+            <button onClick={() => setOpen(false)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: C.muted, fontSize: 20, cursor: "pointer" }}>×</button>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>💖</div>
+            <div style={{ fontFamily: "var(--display)", fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 6 }}>Developed by</div>
+            <div style={{ fontFamily: "var(--display)", fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 18, letterSpacing: "-.5px" }}>Md Sonet Mia</div>
+            <a href="https://wa.me/8801797953059" target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px 22px", borderRadius: 12, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 20px rgba(37,211,102,.4)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              01797953059
+            </a>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 14 }}>Tap to open WhatsApp</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -826,6 +1024,7 @@ export default function App() {
         @keyframes sp { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
         @keyframes neonPulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+        @keyframes heartBeat { 0%,100% { transform: scale(1); } 25% { transform: scale(1.12); } 50% { transform: scale(1); } 75% { transform: scale(1.08); } }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: ${C.bg}; font-family: ${bodyFont}; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -853,6 +1052,7 @@ export default function App() {
             <PageContent page={page} themeKey={themeKey} setThemeKey={setThemeKey} />
           </div>
         )}
+        <HeartButton />
       </div>
     </>
   );
