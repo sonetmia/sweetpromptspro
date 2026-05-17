@@ -725,7 +725,7 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
     <div>
       <div style={{ background: `${C.orange}12`, border: `1px solid ${C.orange}33`, borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.orange, marginBottom: 6 }}>⚡ How AI Works Here</div>
-        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>All tools run on <strong style={{ color: C.text }}>Lovable AI Gateway</strong> — zero setup, zero API keys needed. Just generate.</p>
+        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>By default, tools run on the <strong style={{ color: C.text }}>Lovable AI Gateway</strong> — no setup needed. You can also switch to your own <strong style={{ color: C.text }}>Gemini</strong> or <strong style={{ color: C.text }}>Groq</strong> API key below.</p>
       </div>
 
       <Divider label="Theme" />
