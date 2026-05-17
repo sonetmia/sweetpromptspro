@@ -758,11 +758,96 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
         })}
       </div>
 
+      <Divider label="AI Provider / API Key" />
+      <ApiKeySettings />
+
       <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 9, padding: "13px 15px", marginTop: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 5, textTransform: "uppercase" }}>🔒 Privacy</div>
-        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Your theme preference is saved locally. AI requests go through the secure Lovable AI Gateway.</p>
+        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Theme &amp; API keys are stored only in your browser (localStorage). Keys never leave your device except in direct calls to the provider you choose.</p>
       </div>
     </div>
+  );
+}
+
+function ApiKeySettings() {
+  const [cfg, setCfg] = useState(() => loadApiCfg());
+  const [saved, setSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testMsg, setTestMsg] = useState("");
+  function update(patch: Partial<typeof cfg>) {
+    const next = { ...cfg, ...patch };
+    setCfg(next); saveApiCfg(next); setSaved(true); setTimeout(() => setSaved(false), 1500);
+  }
+  async function test() {
+    setTesting(true); setTestMsg("");
+    try { const t = await callAI("Reply with: OK", "ping", 10); setTestMsg("✓ Connected: " + (t.slice(0, 50) || "(empty)")); }
+    catch (e: any) { setTestMsg("✗ " + e.message); }
+    finally { setTesting(false); }
+  }
+  const providers: { id: Provider; label: string; hint: string }[] = [
+    { id: "lovable", label: "Lovable AI (Default)", hint: "No key required, billed via workspace" },
+    { id: "gemini", label: "Google Gemini", hint: "Get key at aistudio.google.com" },
+    { id: "groq", label: "Groq AI", hint: "Get key at console.groq.com" },
+  ];
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10, marginBottom: 14 }}>
+        {providers.map(p => {
+          const active = cfg.provider === p.id;
+          return (
+            <button key={p.id} onClick={() => update({ provider: p.id })} style={{
+              background: active ? C.orangeSoft : C.card2, border: `2px solid ${active ? C.orange : C.border2}`,
+              borderRadius: 12, padding: "12px 14px", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+            }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? C.orange : C.text, marginBottom: 3 }}>{p.label}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>{p.hint}</div>
+            </button>
+          );
+        })}
+      </div>
+      {cfg.provider !== "lovable" && (
+        <>
+          <Inp label={`${cfg.provider === "gemini" ? "Gemini" : "Groq"} API Key`} value={cfg.key} onChange={(v: string) => update({ key: v })} placeholder={cfg.provider === "gemini" ? "AIza..." : "gsk_..."} type="password" />
+          <Inp label="Model (optional)" value={cfg.model} onChange={(v: string) => update({ model: v })} placeholder={cfg.provider === "gemini" ? "gemini-2.0-flash" : "llama-3.3-70b-versatile"} />
+        </>
+      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <Btn onClick={test} loading={testing} label="🔌 Test Connection" color={C.blue} />
+        {saved && <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Saved</span>}
+        {testMsg && <span style={{ fontSize: 12, color: testMsg.startsWith("✓") ? C.green : C.red }}>{testMsg}</span>}
+      </div>
+    </div>
+  );
+}
+
+function HeartButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(true)} aria-label="Developer info"
+        style={{
+          position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: "50%",
+          background: `linear-gradient(135deg,${C.orange},${C.purple})`, border: "none", cursor: "pointer",
+          boxShadow: `0 6px 30px ${C.orange}88`, zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center",
+          animation: "heartBeat 1.6s ease-in-out infinite", color: "#fff", fontSize: 26,
+        }}>♥</button>
+      {open && (
+        <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.75)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 18, padding: 28, maxWidth: 380, width: "100%", textAlign: "center", position: "relative" }}>
+            <button onClick={() => setOpen(false)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: C.muted, fontSize: 20, cursor: "pointer" }}>×</button>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>💖</div>
+            <div style={{ fontFamily: "var(--display)", fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 6 }}>Developed by</div>
+            <div style={{ fontFamily: "var(--display)", fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 18, letterSpacing: "-.5px" }}>Md Sonet Mia</div>
+            <a href="https://wa.me/8801797953059" target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#25D366", color: "#fff", textDecoration: "none", padding: "12px 22px", borderRadius: 12, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 20px rgba(37,211,102,.4)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              01797953059
+            </a>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 14 }}>Tap to open WhatsApp</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
