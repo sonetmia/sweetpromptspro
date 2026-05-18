@@ -887,11 +887,121 @@ const FEATURES = [
   { icon: "🔍", title: "Silhouette Finder", desc: "Clean isolated silhouettes", id: "silhouette" },
 ];
 
+// ── ShinyText (framer-motion animated gradient text) ──────────────────────────
+function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffffff", spread = 100, className = "", style = {} }: { text: string; speed?: number; baseColor?: string; shineColor?: string; spread?: number; className?: string; style?: React.CSSProperties }) {
+  const gradient = `linear-gradient(${spread}deg, ${baseColor} 0%, ${baseColor} 35%, ${shineColor} 50%, ${baseColor} 65%, ${baseColor} 100%)`;
+  return (
+    <motion.span
+      className={className}
+      style={{
+        display: "inline-block",
+        backgroundImage: gradient,
+        backgroundSize: "200% 100%",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        color: "transparent",
+        ...style,
+      }}
+      animate={{ backgroundPosition: ["200% 0%", "-100% 0%"] }}
+      transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
+    >
+      {text}
+    </motion.span>
+  );
+}
+
+const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
+
+function HeroSection({ setPage }: { setPage: (p: string) => void }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  return (
+    <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_105406_16f4600d-7a92-4292-b96e-b19156c7830a.mp4"
+      />
+      <div className="absolute inset-0 bg-black/40" />
+
+      <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Navbar */}
+        <nav className="flex items-center justify-between pt-5">
+          <button onClick={() => setPage("home")} className="flex items-center gap-3 cursor-pointer">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border-2 border-white">
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
+            </span>
+            <span className="text-white text-sm font-medium tracking-tight">Sweet Prompts Pro</span>
+          </button>
+
+          <div className="hidden lg:flex items-center gap-1 border border-gray-700 rounded-full px-2 py-1.5 bg-black/30 backdrop-blur-sm">
+            {HERO_NAV.map((l) => (
+              <a key={l} href="#" className="text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-full transition-colors">{l}</a>
+            ))}
+            <a href="#" className="text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-full inline-flex items-center gap-1 transition-colors">
+              Contact us <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+          <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden text-white p-2" aria-label="menu">
+            <Menu className="w-6 h-6" />
+          </button>
+        </nav>
+
+        {mobileOpen && (
+          <div className="lg:hidden mt-3 flex flex-col gap-1 border border-gray-700 rounded-2xl p-3 bg-black/60 backdrop-blur-md">
+            {[...HERO_NAV, "Contact us"].map(l => (
+              <a key={l} href="#" className="text-sm text-white/80 hover:text-white py-2 px-2">{l}</a>
+            ))}
+          </div>
+        )}
+
+        {/* Top two-column */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8 lg:mt-12">
+          <p className="text-white/80 text-sm md:text-base max-w-md leading-relaxed">
+            JPG, PNG, silhouettes — bulk generate microstock-ready prompts from 5 to 200 at a time..
+          </p>
+          <p className="text-white/80 text-sm md:text-base lg:text-right max-w-md lg:ml-auto leading-relaxed">
+            8000+ Talented Designers Launched !
+          </p>
+        </div>
+
+        {/* Hero center */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
+          <p className="text-white/80 text-xs md:text-sm uppercase tracking-tight mb-4">
+            ✦ AI-Powered Microstock Prompt Studio
+          </p>
+          <h1
+            className="text-white font-medium tracking-tighter text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
+            style={{ lineHeight: 0.85 }}
+          >
+            <span className="block">Sweet</span>
+            <ShinyText text="Prompts Pro." speed={3} baseColor="#64CEFB" shineColor="#ffffff" spread={100} />
+          </h1>
+
+          <button
+            onClick={() => setPage("bulk")}
+            className="group mt-10 inline-flex items-center gap-2 bg-black hover:bg-gray-900 text-white rounded-full px-6 md:px-8 py-3 md:py-4 text-sm md:text-base font-medium transition-colors border border-white/10"
+          >
+            Bulk Prompts Generator
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HomePage({ setPage }: { setPage: (p: string) => void }) {
   const [hover, setHover] = useState<string | null>(null);
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
+      <HeroSection setPage={setPage} />
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "80px 40px 60px", textAlign: "center", position: "relative" }}>
+
         <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(ellipse at center, ${C.orange}22 0%, transparent 70%)`, pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: 100, left: "10%", width: 200, height: 200, background: `radial-gradient(ellipse at center, ${C.purple}22 0%, transparent 70%)`, pointerEvents: "none" }} />
 
