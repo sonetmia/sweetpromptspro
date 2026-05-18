@@ -1000,43 +1000,10 @@ function HomePage({ setPage }: { setPage: (p: string) => void }) {
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
       <HeroSection setPage={setPage} />
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "80px 40px 60px", textAlign: "center", position: "relative" }}>
-
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(ellipse at center, ${C.orange}22 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 100, left: "10%", width: 200, height: 200, background: `radial-gradient(ellipse at center, ${C.purple}22 0%, transparent 70%)`, pointerEvents: "none" }} />
-
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.orangeSoft, border: `1px solid ${C.orange}44`, borderRadius: 20, padding: "5px 16px", fontSize: 12.5, color: C.orange, fontWeight: 600, marginBottom: 24, position: "relative" }}>
-          ✦ AI-Powered Microstock Prompt Studio
-        </div>
-        <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(36px,7vw,72px)", fontWeight: 800, color: C.text, lineHeight: 1.08, marginBottom: 24, letterSpacing: "-2px", position: "relative" }}>
-          Generate AI Prompts<br /><span style={{ color: C.orange }}>at Scale</span>
-        </h1>
-        <p style={{ fontSize: "clamp(15px,2vw,18px)", color: C.muted, maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.7, position: "relative" }}>
-          JPG, PNG, silhouettes — bulk generate microstock-ready prompts from 5 to 200 at a time.
-        </p>
-        <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", position: "relative" }}>
-          <button onClick={() => setPage("bulk")} style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 12, padding: "14px 28px", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 6px 30px ${C.orange}55` }}>🖼 Bulk Generator →</button>
-          <button onClick={() => setPage("jpg")} style={{ background: C.purple, color: "#fff", border: "none", borderRadius: 12, padding: "14px 28px", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 6px 30px ${C.purple}55` }}>📷 JPG Creator →</button>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px 80px" }}>
-        <h2 style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 800, color: C.orange, textAlign: "center", marginBottom: 40, letterSpacing: "-1px" }}>All Tools</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 18 }}>
-          {FEATURES.map(f => (
-            <div key={f.id} onClick={() => setPage(f.id)}
-              onMouseEnter={() => setHover(f.id)} onMouseLeave={() => setHover(null)}
-              style={{ background: hover === f.id ? C.card2 : C.card, border: `1px solid ${hover === f.id ? C.orange + "55" : C.border}`, borderRadius: 14, padding: "24px 22px", cursor: "pointer", transition: "all .18s", transform: hover === f.id ? "translateY(-3px)" : "none", boxShadow: hover === f.id ? `0 8px 30px ${C.orange}22` : "none" }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg,${C.orange}44,${C.purple}33)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 14 }}>{f.icon}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 7, fontFamily: "var(--display)" }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
+
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 const AI_TOOLS = [
