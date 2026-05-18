@@ -913,8 +913,18 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
 
 const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
 
+const HERO_TOOLS = [
+  { id: "bulk", icon: "🖼", label: "Bulk Generator" },
+  { id: "idea", icon: "💡", label: "Idea Generator" },
+  { id: "jpg", icon: "📷", label: "JPG Creator" },
+  { id: "png", icon: "🟦", label: "PNG Creator" },
+  { id: "improver", icon: "⚡", label: "Improver" },
+  { id: "variations", icon: "🔀", label: "Variations" },
+  { id: "silhouette", icon: "🔍", label: "Silhouette" },
+  { id: "translator", icon: "🌐", label: "Translator" },
+];
+
 function HeroSection({ setPage }: { setPage: (p: string) => void }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
       <video
@@ -927,40 +937,9 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
       />
       <div className="absolute inset-0 bg-black/40" />
 
-      <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Navbar */}
-        <nav className="flex items-center justify-between pt-5">
-          <button onClick={() => setPage("home")} className="flex items-center gap-3 cursor-pointer">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border-2 border-white">
-              <span className="w-2.5 h-2.5 rounded-full bg-white" />
-            </span>
-            <span className="text-white text-sm font-medium tracking-tight">Sweet Prompts Pro</span>
-          </button>
-
-          <div className="hidden lg:flex items-center gap-1 border border-gray-700 rounded-full px-2 py-1.5 bg-black/30 backdrop-blur-sm">
-            {HERO_NAV.map((l) => (
-              <a key={l} href="#" className="text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-full transition-colors">{l}</a>
-            ))}
-            <a href="#" className="text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-full inline-flex items-center gap-1 transition-colors">
-              Contact us <ArrowUpRight className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden text-white p-2" aria-label="menu">
-            <Menu className="w-6 h-6" />
-          </button>
-        </nav>
-
-        {mobileOpen && (
-          <div className="lg:hidden mt-3 flex flex-col gap-1 border border-gray-700 rounded-2xl p-3 bg-black/60 backdrop-blur-md">
-            {[...HERO_NAV, "Contact us"].map(l => (
-              <a key={l} href="#" className="text-sm text-white/80 hover:text-white py-2 px-2">{l}</a>
-            ))}
-          </div>
-        )}
-
+      <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Top two-column */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8 lg:mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <p className="text-white/80 text-sm md:text-base max-w-md leading-relaxed">
             JPG, PNG, silhouettes — bulk generate microstock-ready prompts from 5 to 200 at a time..
           </p>
@@ -989,11 +968,27 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             Bulk Prompts Generator
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
+
+          {/* Tool icons */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-2 md:gap-3 max-w-3xl">
+            {HERO_TOOLS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setPage(t.id)}
+                className="group flex items-center gap-2 border border-white/20 hover:border-white/60 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-full px-3 md:px-4 py-2 transition-all"
+                title={t.label}
+              >
+                <span className="text-base md:text-lg leading-none">{t.icon}</span>
+                <span className="text-xs md:text-sm text-white/80 group-hover:text-white">{t.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
 
 function HomePage({ setPage }: { setPage: (p: string) => void }) {
   const [hover, setHover] = useState<string | null>(null);
