@@ -962,7 +962,7 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
           </button>
 
           {/* Tool icons */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-2 md:gap-3 max-w-3xl">
+          <div className="border-red-600">
             {HERO_TOOLS.map((t) => (
               <button
                 key={t.id}
@@ -971,7 +971,7 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 title={t.label}
               >
                 <span className="text-base md:text-lg leading-none">{t.icon}</span>
-                <span className="text-xs md:text-sm text-white/80 group-hover:text-white">{t.label}</span>
+                <span className="text-xs md:text-sm text-white/80 group-hover:text-white whitespace-pre-line">{t.label}</span>
               </button>
             ))}
           </div>
