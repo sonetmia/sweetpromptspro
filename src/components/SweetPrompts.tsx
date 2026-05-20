@@ -914,7 +914,7 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
 const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
 
 const HERO_TOOLS = [
-  { id: "bulk", icon: "🖼", label: "Creators\n▾" },
+  { id: "bulk", icon: "🖼", label: "Bulk Generator" },
   { id: "idea", icon: "💡", label: "Idea Generator" },
   { id: "jpg", icon: "📷", label: "JPG Creator" },
   { id: "png", icon: "🟦", label: "PNG Creator" },
@@ -962,17 +962,25 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
           </button>
 
           {/* Tool icons */}
-          <div className="border-red-600">
-            {HERO_TOOLS.map((t) => (
-              <button
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 md:gap-4 max-w-3xl">
+            {HERO_TOOLS.map((t, i) => (
+              <motion.button
                 key={t.id}
                 onClick={() => setPage(t.id)}
-                className="group flex items-center gap-2 border border-white/20 hover:border-white/60 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-full px-3 md:px-4 py-2 transition-all"
                 title={t.label}
+                aria-label={t.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: [0, -4, 0] }}
+                transition={{
+                  opacity: { duration: 0.4, delay: i * 0.06 },
+                  y: { duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 },
+                }}
+                whileHover={{ scale: 1.18, rotate: -6 }}
+                whileTap={{ scale: 0.92 }}
+                className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full border border-white/20 hover:border-white/70 bg-white/5 hover:bg-white/15 backdrop-blur-sm text-2xl md:text-3xl leading-none"
               >
-                <span className="text-base md:text-lg leading-none">{t.icon}</span>
-                <span className="text-xs md:text-sm text-white/80 group-hover:text-white whitespace-pre-line">{t.label}</span>
-              </button>
+                <span>{t.icon}</span>
+              </motion.button>
             ))}
           </div>
         </div>
