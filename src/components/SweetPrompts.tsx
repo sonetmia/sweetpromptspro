@@ -953,13 +953,29 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             <ShinyText text="Prompts Pro." speed={3} baseColor="#64CEFB" shineColor="#ffffff" spread={100} />
           </h1>
 
-          <button
+          <motion.button
             onClick={() => setPage("bulk")}
-            className="group mt-10 inline-flex items-center gap-2 bg-black hover:bg-gray-900 text-white rounded-full px-6 md:px-8 py-3 md:py-4 text-sm md:text-base font-medium transition-colors border border-white/10"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.96 }}
+            className="group relative mt-10 inline-flex items-center gap-2 rounded-full px-7 md:px-9 py-3.5 md:py-4 text-sm md:text-base font-semibold text-white overflow-hidden"
+            style={{
+              background: "linear-gradient(110deg,#64CEFB 0%,#A78BFA 50%,#F472B6 100%)",
+              backgroundSize: "200% 100%",
+              boxShadow: "0 10px 40px -8px rgba(100,206,251,.55), 0 0 0 1px rgba(255,255,255,.15) inset",
+            }}
           >
-            Bulk Prompts Generator
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
+            <motion.span
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%)",
+              }}
+              animate={{ x: ["-120%", "120%"] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
+            />
+            <span className="relative z-10 tracking-tight">✨ Bulk Prompts Generator</span>
+            <ArrowRight className="relative z-10 w-4 h-4 transition-transform group-hover:translate-x-1.5" />
+          </motion.button>
 
           {/* Tool icons */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3 md:gap-4 max-w-3xl">
