@@ -799,7 +799,7 @@ function ApiKeySettings() {
           return (
             <button key={p.id} onClick={() => update({ provider: p.id })} style={{
               background: active ? C.orangeSoft : C.card2, border: `2px solid ${active ? C.orange : C.border2}`,
-              borderRadius: 12, padding: "12px 14px", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+              borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit",
             }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? C.orange : C.text, marginBottom: 3 }}>{p.label}</div>
               <div style={{ fontSize: 11, color: C.muted }}>{p.hint}</div>
