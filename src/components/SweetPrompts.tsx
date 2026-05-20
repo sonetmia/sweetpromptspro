@@ -938,15 +938,7 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {/* Top two-column */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <p className="text-white/80 text-sm md:text-base max-w-md leading-relaxed">
-            JPG, PNG, silhouettes — bulk generate microstock-ready prompts from 5 to 200 at a time..
-          </p>
-          <p className="text-white/80 text-sm md:text-base lg:text-right max-w-md lg:ml-auto leading-relaxed">
-            8000+ Talented Designers Launched !
-          </p>
-        </div>
+
 
         {/* Hero center */}
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
