@@ -137,7 +137,7 @@ function triggerDownload(blob: Blob, filename: string) {
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 }
 function dlTxt(arr: string[]) {
-  triggerDownload(new Blob([arr.join("\n\n---\n\n")], { type: "text/plain;charset=utf-8" }), "prompts.txt");
+  triggerDownload(new Blob([arr.join("\n\n")], { type: "text/plain;charset=utf-8" }), "prompts.txt");
 }
 function dlCsv(arr: string[]) {
   const rows = arr.map((p, i) => `${i + 1},"${p.replace(/"/g, '""')}"`).join("\n");
