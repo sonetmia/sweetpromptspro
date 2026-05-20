@@ -799,7 +799,7 @@ function ApiKeySettings() {
           return (
             <button key={p.id} onClick={() => update({ provider: p.id })} style={{
               background: active ? C.orangeSoft : C.card2, border: `2px solid ${active ? C.orange : C.border2}`,
-              borderRadius: 12, padding: "12px 14px", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+              borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit",
             }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? C.orange : C.text, marginBottom: 3 }}>{p.label}</div>
               <div style={{ fontSize: 11, color: C.muted }}>{p.hint}</div>
@@ -914,7 +914,7 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
 const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
 
 const HERO_TOOLS = [
-  { id: "bulk", icon: "🖼", label: "Bulk Generator" },
+  { id: "bulk", icon: "🖼", label: "Creators\n▾" },
   { id: "idea", icon: "💡", label: "Idea Generator" },
   { id: "jpg", icon: "📷", label: "JPG Creator" },
   { id: "png", icon: "🟦", label: "PNG Creator" },
@@ -962,7 +962,7 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
           </button>
 
           {/* Tool icons */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-2 md:gap-3 max-w-3xl">
+          <div className="border-red-600">
             {HERO_TOOLS.map((t) => (
               <button
                 key={t.id}
@@ -971,7 +971,7 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 title={t.label}
               >
                 <span className="text-base md:text-lg leading-none">{t.icon}</span>
-                <span className="text-xs md:text-sm text-white/80 group-hover:text-white">{t.label}</span>
+                <span className="text-xs md:text-sm text-white/80 group-hover:text-white whitespace-pre-line">{t.label}</span>
               </button>
             ))}
           </div>
