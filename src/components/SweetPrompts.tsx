@@ -914,7 +914,7 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
 const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
 
 const HERO_TOOLS = [
-  { id: "bulk", icon: "🖼", label: "Creators\n▾" },
+  { id: "bulk", icon: "🖼", label: "Bulk Generator" },
   { id: "idea", icon: "💡", label: "Idea Generator" },
   { id: "jpg", icon: "📷", label: "JPG Creator" },
   { id: "png", icon: "🟦", label: "PNG Creator" },
