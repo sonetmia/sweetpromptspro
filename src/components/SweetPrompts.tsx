@@ -1014,12 +1014,14 @@ function Navbar({ page, setPage }: any) {
   const [aiOpen, setAiOpen] = useState(false);
   const [crOpen, setCrOpen] = useState(false);
   return (
-    <nav style={{ background: C.nav, borderBottom: `1px solid ${C.border}`, padding: "0 32px", display: "flex", alignItems: "center", height: 58, position: "sticky", top: 0, zIndex: 100, gap: 8, backdropFilter: "blur(10px)" }}>
-      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginRight: 16 }}>
-        <span style={{ fontSize: 20, color: C.orange }}>✦</span>
-        <span style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 800, color: C.text, letterSpacing: "-.5px" }}>Sweet Prompts</span>
+    <nav style={{ background: "rgba(0,0,0,0.55)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100, gap: 12, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid #fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fff" }} />
+        </span>
+        <span style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-.3px" }}>Sweet Prompts Pro</span>
       </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, backdropFilter: "blur(8px)" }}>
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
         <Dropdown label="Creators" open={crOpen} setOpen={setCrOpen} items={CREATORS} setPage={setPage} active={CREATORS.some(c => c.id === page)} />
         <Dropdown label="AI Tools" open={aiOpen} setOpen={setAiOpen} items={AI_TOOLS} setPage={setPage} active={AI_TOOLS.some(c => c.id === page)} />
@@ -1027,6 +1029,7 @@ function Navbar({ page, setPage }: any) {
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
     </nav>
+
   );
 }
 
