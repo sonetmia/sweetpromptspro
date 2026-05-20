@@ -1034,15 +1034,16 @@ function Navbar({ page, setPage }: any) {
 }
 
 function NavBtn({ label, active, onClick }: any) {
-  return <button onClick={onClick} style={{ background: active ? C.orangeSoft : "none", border: `1px solid ${active ? C.orange + "55" : "transparent"}`, borderRadius: 8, color: active ? C.orange : C.muted, padding: "5px 12px", fontSize: 13.5, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit" }}>{label}</button>;
+  return <button onClick={onClick} style={{ background: active ? "rgba(255,255,255,0.14)" : "transparent", border: "1px solid transparent", borderRadius: 999, color: active ? "#fff" : "rgba(255,255,255,0.75)", padding: "6px 14px", fontSize: 13.5, fontWeight: active ? 600 : 500, cursor: "pointer", fontFamily: "inherit", transition: "all .15s" }}>{label}</button>;
 }
 
 function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   return (
     <div style={{ position: "relative" }}>
-      <button onClick={() => setOpen(!open)} style={{ background: open || active ? C.orangeSoft : "none", border: `1px solid ${open || active ? C.orange + "55" : "transparent"}`, borderRadius: 8, color: open || active ? C.orange : C.muted, padding: "5px 12px", fontSize: 13.5, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}>
+      <button onClick={() => setOpen(!open)} style={{ background: open || active ? "rgba(255,255,255,0.14)" : "transparent", border: "1px solid transparent", borderRadius: 999, color: open || active ? "#fff" : "rgba(255,255,255,0.75)", padding: "6px 14px", fontSize: 13.5, fontWeight: active ? 600 : 500, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5, transition: "all .15s" }}>
         {label} <span style={{ fontSize: 11, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}>▾</span>
       </button>
+
       {open && (
         <div onMouseLeave={() => setOpen(false)} style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, background: C.nav, border: `1px solid ${C.border2}`, borderRadius: 12, padding: "8px 0", minWidth: 210, boxShadow: `0 12px 40px rgba(0,0,0,.4)`, zIndex: 200 }}>
           {items.map((t: any) => (
