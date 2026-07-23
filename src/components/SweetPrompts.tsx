@@ -1105,6 +1105,8 @@ const AI_TOOLS = [
   { id: "translator", icon: "🌐", label: "Prompt Translator" },
   { id: "brainstorm", icon: "🧠", label: "Brainstormer" },
   { id: "silhouette", icon: "🔍", label: "Silhouette Finder" },
+  { id: "imgprompts", icon: "🖼", label: "Image → Prompts" },
+  { id: "imgmeta", icon: "🏷", label: "Image → Metadata" },
 ];
 
 const CREATORS = [
