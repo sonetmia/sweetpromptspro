@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
-import { callAIFn } from "@/lib/ai.functions";
+import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
 type Provider = "lovable" | "gemini" | "groq";
