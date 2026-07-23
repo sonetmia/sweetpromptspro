@@ -1096,6 +1096,270 @@ function HomePage({ setPage }: { setPage: (p: string) => void }) {
 }
 
 
+// ── Image → Prompts ───────────────────────────────────────────────────────────
+type ImgItem = { id: string; name: string; dataUrl: string; prompt?: string; status: "idle" | "loading" | "done" | "error"; error?: string };
+
+function ImagePicker({ onFiles, disabled }: { onFiles: (files: File[]) => void; disabled?: boolean }) {
+  const [over, setOver] = useState(false);
+  return (
+    <label
+      onDragOver={e => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={e => {
+        e.preventDefault(); setOver(false);
+        const fs = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
+        if (fs.length) onFiles(fs);
+      }}
+      style={{
+        display: "block", border: `2px dashed ${over ? C.orange : C.border2}`, borderRadius: 14,
+        padding: "28px 20px", textAlign: "center", cursor: disabled ? "not-allowed" : "pointer",
+        background: over ? C.orangeSoft : C.card, transition: "all .18s", marginBottom: 14, opacity: disabled ? .6 : 1,
+      }}>
+      <div style={{ fontSize: 30, marginBottom: 6 }}>📤</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>Drop images here or click to upload</div>
+      <div style={{ fontSize: 11.5, color: C.muted }}>JPG, PNG, WEBP · multiple files supported</div>
+      <input type="file" accept="image/*,video/*" multiple disabled={disabled} style={{ display: "none" }}
+        onChange={e => { const fs = e.target.files ? Array.from(e.target.files) : []; if (fs.length) onFiles(fs); e.currentTarget.value = ""; }} />
+    </label>
+  );
+}
+
+function ImageToPrompts() {
+  const [items, setItems] = useState<ImgItem[]>([]);
+  const [style, setStyle] = useState("photorealistic microstock");
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  async function addFiles(files: File[]) {
+    const imgs = files.filter(f => f.type.startsWith("image/"));
+    const newItems: ImgItem[] = [];
+    for (const f of imgs) {
+      const dataUrl = await fileToDataUrl(f);
+      newItems.push({ id: Math.random().toString(36).slice(2), name: f.name, dataUrl, status: "idle" });
+    }
+    setItems(prev => [...prev, ...newItems]);
+  }
+
+  async function generateAll() {
+    if (!items.length) return;
+    setBusy(true); setProgress(0);
+    const sys = `You are an expert AI image prompt engineer for microstock. Given an uploaded image, write ONE detailed AI generation prompt (60-120 words) that could reproduce a similar image in ${style} style. Focus on subject, composition, lighting, color palette, mood, and technical details (lens, aperture if photo). Avoid trademarks, brand names, and identifiable people. Return ONLY the prompt text, no numbering, no preface.`;
+    let done = 0;
+    const next = [...items];
+    for (let i = 0; i < next.length; i++) {
+      const it = next[i];
+      if (it.status === "done") { done++; continue; }
+      next[i] = { ...it, status: "loading" };
+      setItems([...next]);
+      try {
+        const text = await callVisionAI(sys, "Analyze this image and produce the prompt.", it.dataUrl, 500);
+        next[i] = { ...next[i], status: "done", prompt: text.trim() };
+      } catch (e: any) {
+        next[i] = { ...next[i], status: "error", error: e.message };
+      }
+      done++;
+      setItems([...next]);
+      setProgress(Math.round((done / next.length) * 100));
+    }
+    setBusy(false);
+  }
+
+  const completed = items.filter(i => i.status === "done" && i.prompt).map(i => i.prompt!);
+
+  return (
+    <div>
+      <ImagePicker onFiles={addFiles} disabled={busy} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+        <div>
+          <Label>Prompt style</Label>
+          <Sel value={style} onChange={e => setStyle(e.target.value)}>
+            <option value="photorealistic microstock">Photorealistic microstock</option>
+            <option value="digital illustration">Digital illustration</option>
+            <option value="flat vector">Flat vector</option>
+            <option value="3D render">3D render</option>
+            <option value="watercolor">Watercolor</option>
+            <option value="cinematic">Cinematic</option>
+          </Sel>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <Btn onClick={generateAll} loading={busy} disabled={!items.length} label={`✨ Generate Prompts (${items.length})`} />
+        </div>
+      </div>
+      {busy && <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>Processing… {progress}%</div>}
+
+      {items.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12, marginBottom: 16 }}>
+          {items.map(it => (
+            <div key={it.id} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 12, padding: 10 }}>
+              <img src={it.dataUrl} alt={it.name} style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />
+              <div style={{ fontSize: 11, color: C.muted, marginBottom: 6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</div>
+              {it.status === "loading" && <div style={{ display: "flex", alignItems: "center", gap: 6, color: C.orange, fontSize: 12 }}><Spin s={12} c={C.orange} /> Analyzing…</div>}
+              {it.status === "done" && it.prompt && <div style={{ fontSize: 12, color: C.text, lineHeight: 1.5, maxHeight: 120, overflow: "auto" }}>{it.prompt}</div>}
+              {it.status === "error" && <div style={{ fontSize: 11, color: C.red }}>✗ {it.error}</div>}
+              {it.status === "idle" && <div style={{ fontSize: 11, color: C.dim }}>Waiting…</div>}
+              <button onClick={() => setItems(prev => prev.filter(x => x.id !== it.id))} style={{ marginTop: 8, background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {completed.length > 0 && <ExportBar prompts={completed} />}
+    </div>
+  );
+}
+
+// ── Image → Metadata ──────────────────────────────────────────────────────────
+const MARKETPLACES = [
+  { id: "adobe", label: "Adobe Stock", kwMax: 49, titleMax: 200 },
+  { id: "shutterstock", label: "Shutterstock", kwMax: 50, titleMax: 200 },
+  { id: "getty", label: "Getty / iStock", kwMax: 50, titleMax: 150 },
+  { id: "dreamstime", label: "Dreamstime", kwMax: 100, titleMax: 100 },
+  { id: "freepik", label: "Freepik", kwMax: 50, titleMax: 100 },
+  { id: "vecteezy", label: "Vecteezy", kwMax: 50, titleMax: 100 },
+];
+
+type MetaItem = {
+  id: string; name: string; dataUrl: string; kind: "image" | "video";
+  status: "idle" | "loading" | "done" | "error";
+  meta?: { title: string; keywords: string[]; category: string; description: string };
+  error?: string;
+};
+
+function csvEscape(s: string) {
+  return `"${(s ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+}
+
+function ImageToMetadata() {
+  const [items, setItems] = useState<MetaItem[]>([]);
+  const [selected, setSelected] = useState<string[]>(["adobe"]);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  async function addFiles(files: File[]) {
+    const next: MetaItem[] = [];
+    for (const f of files) {
+      const kind: "image" | "video" = f.type.startsWith("video/") ? "video" : "image";
+      if (kind === "video") {
+        next.push({ id: Math.random().toString(36).slice(2), name: f.name, dataUrl: "", kind, status: "idle" });
+      } else {
+        const dataUrl = await fileToDataUrl(f);
+        next.push({ id: Math.random().toString(36).slice(2), name: f.name, dataUrl, kind, status: "idle" });
+      }
+    }
+    setItems(prev => [...prev, ...next]);
+  }
+
+  function toggleMk(id: string) {
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }
+
+  async function run() {
+    if (!items.length || !selected.length) return;
+    setBusy(true); setProgress(0);
+    const kwTarget = Math.min(...selected.map(id => MARKETPLACES.find(m => m.id === id)!.kwMax));
+    const titleTarget = Math.min(...selected.map(id => MARKETPLACES.find(m => m.id === id)!.titleMax));
+    const sys = `You generate microstock metadata for uploaded images. Return STRICT JSON with keys: title (<=${titleTarget} chars, descriptive, no brand names, no clickbait), description (1-2 sentences), category (one of: Animals, Buildings & Architecture, Business, Drinks, The Environment, States of Mind, Food, Graphic Resources, Hobbies & Leisure, Industry, Landscapes, Lifestyle, People, Plants & Flowers, Culture & Religion, Science, Social Issues, Sports, Technology, Transport, Travel), keywords (array of exactly ${kwTarget} single-word or two-word English keywords, most relevant first, no duplicates, no brand names). Return ONLY valid JSON, no code fences.`;
+
+    const next = [...items];
+    for (let i = 0; i < next.length; i++) {
+      const it = next[i];
+      if (it.status === "done") { setProgress(Math.round(((i + 1) / next.length) * 100)); continue; }
+      if (it.kind === "video") {
+        next[i] = { ...it, status: "error", error: "Video analysis not supported — extract a frame and re-upload as image." };
+        setItems([...next]); setProgress(Math.round(((i + 1) / next.length) * 100));
+        continue;
+      }
+      next[i] = { ...it, status: "loading" };
+      setItems([...next]);
+      try {
+        const raw = await callVisionAI(sys, "Analyze this image and return the JSON metadata.", it.dataUrl, 1200);
+        const clean = raw.replace(/```json|```/g, "").trim();
+        const jsonMatch = clean.match(/\{[\s\S]*\}/);
+        const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+        const kws: string[] = Array.isArray(parsed.keywords) ? parsed.keywords.map((k: any) => String(k).trim()).filter(Boolean) : [];
+        next[i] = { ...next[i], status: "done", meta: {
+          title: String(parsed.title || "").slice(0, titleTarget),
+          description: String(parsed.description || ""),
+          category: String(parsed.category || "Graphic Resources"),
+          keywords: kws.slice(0, kwTarget),
+        }};
+      } catch (e: any) {
+        next[i] = { ...next[i], status: "error", error: e.message };
+      }
+      setItems([...next]);
+      setProgress(Math.round(((i + 1) / next.length) * 100));
+    }
+    setBusy(false);
+  }
+
+  function downloadCsv() {
+    const rows: string[] = [];
+    rows.push(["Filename", "Marketplace", "Title", "Description", "Keywords", "Category"].join(","));
+    for (const it of items) {
+      if (!it.meta) continue;
+      for (const mkId of selected) {
+        const mk = MARKETPLACES.find(m => m.id === mkId)!;
+        const kws = it.meta.keywords.slice(0, mk.kwMax).join(", ");
+        const title = it.meta.title.slice(0, mk.titleMax);
+        rows.push([csvEscape(it.name), csvEscape(mk.label), csvEscape(title), csvEscape(it.meta.description), csvEscape(kws), csvEscape(it.meta.category)].join(","));
+      }
+    }
+    triggerDownload(new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" }), "microstock-metadata.csv");
+  }
+
+  const doneCount = items.filter(i => i.status === "done").length;
+
+  return (
+    <div>
+      <ImagePicker onFiles={addFiles} disabled={busy} />
+
+      <Label>Target marketplaces</Label>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        {MARKETPLACES.map(m => {
+          const on = selected.includes(m.id);
+          return (
+            <button key={m.id} onClick={() => toggleMk(m.id)} style={{
+              background: on ? C.orangeSoft : C.card2, border: `1.5px solid ${on ? C.orange : C.border2}`,
+              color: on ? C.orange : C.text, borderRadius: 999, padding: "6px 14px", fontSize: 12.5, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>{on ? "✓ " : ""}{m.label} <span style={{ opacity: .6, fontSize: 10 }}>·{m.kwMax}kw</span></button>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+        <Btn onClick={run} loading={busy} disabled={!items.length || !selected.length} label={`🏷 Generate Metadata (${items.length})`} />
+        {doneCount > 0 && <Btn onClick={downloadCsv} label={`↓ Download CSV (${doneCount})`} color={C.green} />}
+      </div>
+      {busy && <div style={{ fontSize: 12, color: C.muted, marginBottom: 10 }}>Analyzing sequentially… {progress}%</div>}
+
+      {items.map(it => (
+        <div key={it.id} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 12, padding: 12, marginBottom: 10, display: "flex", gap: 12 }}>
+          {it.dataUrl ? (
+            <img src={it.dataUrl} alt={it.name} style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 100, height: 100, borderRadius: 8, background: C.card2, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0 }}>🎬</div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</div>
+            {it.status === "loading" && <div style={{ display: "flex", alignItems: "center", gap: 6, color: C.orange, fontSize: 12 }}><Spin s={12} c={C.orange} /> Analyzing…</div>}
+            {it.status === "idle" && <div style={{ fontSize: 12, color: C.dim }}>Waiting…</div>}
+            {it.status === "error" && <div style={{ fontSize: 12, color: C.red }}>✗ {it.error}</div>}
+            {it.status === "done" && it.meta && (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 3 }}>{it.meta.title}</div>
+                <div style={{ fontSize: 11, color: C.muted, marginBottom: 5 }}>📂 {it.meta.category}</div>
+                <div style={{ fontSize: 11.5, color: C.text, lineHeight: 1.5, marginBottom: 6 }}>{it.meta.description}</div>
+                <div style={{ fontSize: 11, color: C.muted }}>🔑 <span style={{ color: C.text }}>{it.meta.keywords.join(", ")}</span></div>
+              </div>
+            )}
+          </div>
+          <button onClick={() => setItems(prev => prev.filter(x => x.id !== it.id))} style={{ background: "none", border: `1px solid ${C.border2}`, color: C.muted, borderRadius: 6, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontFamily: "inherit", height: "fit-content" }}>Remove</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Nav ───────────────────────────────────────────────────────────────────────
 const AI_TOOLS = [
   { id: "improver", icon: "⚡", label: "Prompt Improver" },
