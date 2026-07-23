@@ -1199,6 +1199,8 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
     translator: <PromptTranslator />,
     brainstorm: <Brainstormer />,
     silhouette: <SilhouetteFinder />,
+    imgprompts: <ImageToPrompts />,
+    imgmeta: <ImageToMetadata />,
     settings: <Settings themeKey={themeKey} setThemeKey={setThemeKey} />,
   };
   return pages[page] || null;
