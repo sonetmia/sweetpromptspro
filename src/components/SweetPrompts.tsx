@@ -889,8 +889,8 @@ function ApiKeySettings() {
       </div>
       {cfg.provider !== "lovable" && (
         <>
-          <Inp label={`${cfg.provider === "gemini" ? "Gemini" : "Groq"} API Key`} value={cfg.key} onChange={(v: string) => update({ key: v })} placeholder={cfg.provider === "gemini" ? "AIza..." : "gsk_..."} type="password" />
-          <Inp label="Model (optional)" value={cfg.model} onChange={(v: string) => update({ model: v })} placeholder={cfg.provider === "gemini" ? "gemini-2.0-flash" : "llama-3.3-70b-versatile"} />
+          <Inp label={`${providerName} API Key`} value={cfg.key} onChange={(v: string) => update({ key: v })} placeholder={keyPlaceholder} type="password" />
+          <Inp label="Model (optional)" value={cfg.model} onChange={(v: string) => update({ model: v })} placeholder={modelPlaceholder} />
         </>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
