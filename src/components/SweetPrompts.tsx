@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
-type Provider = "lovable" | "gemini" | "groq";
+type Provider = "lovable" | "gemini" | "groq" | "mistral";
 function loadApiCfg(): { provider: Provider; key: string; model: string } {
   try {
     const raw = localStorage.getItem("sp_api_cfg");
@@ -45,6 +45,64 @@ async function callGroq(system: string, user: string, key: string, model: string
   if (!res.ok) throw new Error(`Groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const j = await res.json();
   return j.choices?.[0]?.message?.content ?? "";
+}
+
+async function callMistral(system: string, user: string, key: string, model: string, maxTokens: number) {
+  const m = model || "mistral-large-latest";
+  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: m, max_tokens: maxTokens, temperature: 0.9,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error(`Mistral ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.choices?.[0]?.message?.content ?? "";
+}
+
+async function callMistralVision(system: string, user: string, imageDataUrl: string, key: string, model: string, maxTokens: number) {
+  const m = model || "pixtral-12b-2409";
+  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: m, max_tokens: maxTokens, temperature: 0.7,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: [
+          { type: "text", text: user },
+          { type: "image_url", image_url: imageDataUrl },
+        ]},
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Mistral vision ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.choices?.[0]?.message?.content ?? "";
+}
+
+async function callGeminiVision(system: string, user: string, imageDataUrl: string, key: string, model: string, maxTokens: number) {
+  const m = model || "gemini-2.0-flash";
+  const match = imageDataUrl.match(/^data:([^;]+);base64,(.*)$/);
+  if (!match) throw new Error("Invalid image data");
+  const [, mime, b64] = match;
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [
+        { text: user },
+        { inline_data: { mime_type: mime, data: b64 } },
+      ]}],
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini vision ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const j = await res.json();
+  return j.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
 }
 
 // ── Microstock risk validator ─────────────────────────────────────────────────
