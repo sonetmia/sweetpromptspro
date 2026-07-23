@@ -177,8 +177,26 @@ async function callAI(system: string, user: string, maxTokens = 1400): Promise<s
   const cfg = loadApiCfg();
   if (cfg.provider === "gemini" && cfg.key) return callGemini(system, user, cfg.key, cfg.model, maxTokens);
   if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "mistral" && cfg.key) return callMistral(system, user, cfg.key, cfg.model, maxTokens);
   const r = await callAIFn({ data: { system, user, maxTokens } });
   return r.text;
+}
+
+async function callVisionAI(system: string, user: string, imageDataUrl: string, maxTokens = 1200): Promise<string> {
+  const cfg = loadApiCfg();
+  if (cfg.provider === "mistral" && cfg.key) return callMistralVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "gemini" && cfg.key) return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
+  const r = await callAIVisionFn({ data: { system, user, imageDataUrl, maxTokens } });
+  return r.text;
+}
+
+function fileToDataUrl(f: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(f);
+  });
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
