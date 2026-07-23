@@ -1180,6 +1180,8 @@ const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   translator: { title: "Prompt Translator", desc: "Translate prompts into any language" },
   brainstorm: { title: "Brainstormer", desc: "Generate creative directions" },
   silhouette: { title: "Silhouette Finder", desc: "Clean isolated silhouette prompts" },
+  imgprompts: { title: "Image → Prompts", desc: "Upload images and generate AI prompts that recreate their style" },
+  imgmeta: { title: "Image → Metadata", desc: "Generate microstock-ready title, keywords & category CSV from images" },
   settings: { title: "Settings", desc: "Theme and preferences" },
 };
 
