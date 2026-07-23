@@ -866,7 +866,11 @@ function ApiKeySettings() {
     { id: "lovable", label: "Lovable AI (Default)", hint: "No key required, billed via workspace" },
     { id: "gemini", label: "Google Gemini", hint: "Get key at aistudio.google.com" },
     { id: "groq", label: "Groq AI", hint: "Get key at console.groq.com" },
+    { id: "mistral", label: "Mistral AI", hint: "Get key at console.mistral.ai (supports vision)" },
   ];
+  const keyPlaceholder = cfg.provider === "gemini" ? "AIza..." : cfg.provider === "groq" ? "gsk_..." : "..."
+  const modelPlaceholder = cfg.provider === "gemini" ? "gemini-2.0-flash" : cfg.provider === "groq" ? "llama-3.3-70b-versatile" : cfg.provider === "mistral" ? "mistral-large-latest / pixtral-12b-2409" : "";
+  const providerName = cfg.provider === "gemini" ? "Gemini" : cfg.provider === "groq" ? "Groq" : cfg.provider === "mistral" ? "Mistral" : "";
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10, marginBottom: 14 }}>
