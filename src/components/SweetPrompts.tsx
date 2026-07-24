@@ -1384,14 +1384,14 @@ function Navbar({ page, setPage }: any) {
   const [aiOpen, setAiOpen] = useState(false);
   const [crOpen, setCrOpen] = useState(false);
   return (
-    <nav style={{ background: "rgba(0,0,0,0.55)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100, gap: 12, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
-      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid #fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fff" }} />
+    <nav style={{ background: "rgba(10,10,15,0.55)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, position: "sticky", top: 0, zIndex: 100, gap: 12, backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", boxShadow: "0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px -12px rgba(0,0,0,0.5)" }}>
+      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 11 }}>
+        <span style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg, #fff 0%, #d4d4e0 100%)", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 22px rgba(245,132,31,.35), inset 0 0 0 1px rgba(255,255,255,.4)` }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "linear-gradient(135deg, #f5841f, #a78bfa)" }} />
         </span>
-        <span style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-.3px" }}>Sweet Prompts Pro</span>
+        <span style={{ fontFamily: "var(--display)", fontSize: 16.5, fontWeight: 700, color: "#fff", letterSpacing: "-.4px" }}>Sweet Prompts Pro</span>
       </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, backdropFilter: "blur(8px)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "5px 6px", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 999, backdropFilter: "blur(12px)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
         <Dropdown label="Creators" open={crOpen} setOpen={setCrOpen} items={CREATORS} setPage={setPage} active={CREATORS.some(c => c.id === page)} />
         <Dropdown label="AI Tools" open={aiOpen} setOpen={setAiOpen} items={AI_TOOLS} setPage={setPage} active={AI_TOOLS.some(c => c.id === page)} />
