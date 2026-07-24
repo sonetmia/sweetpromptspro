@@ -284,8 +284,11 @@ function Inp({ label, value, onChange, placeholder, type = "text" }: any) {
 function Btn({ onClick, loading, disabled, label, color }: any) {
   const bg = color || C.orange;
   const off = loading || disabled;
+  const [hover, setHover] = useState(false);
   return (
-    <button onClick={onClick} disabled={off} style={{ background: off ? C.dim : bg, color: "#fff", border: "none", borderRadius: 9, padding: "11px 24px", fontSize: 14, fontWeight: 700, cursor: off ? "not-allowed" : "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 7, boxShadow: off ? "none" : `0 4px 20px ${bg}55`, transition: "all .17s", letterSpacing: ".2px" }}>
+    <button onClick={onClick} disabled={off}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ background: off ? "rgba(255,255,255,0.06)" : `linear-gradient(180deg, ${bg} 0%, ${bg}dd 100%)`, color: off ? C.dim : "#fff", border: off ? `1px solid ${C.border2}` : `1px solid ${bg}`, borderRadius: 11, padding: "12px 26px", fontSize: 14, fontWeight: 700, cursor: off ? "not-allowed" : "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 7, boxShadow: off ? "none" : `0 6px 22px ${bg}44, inset 0 1px 0 rgba(255,255,255,0.22)`, letterSpacing: ".2px", transform: hover && !off ? "translateY(-1px)" : "none" }}>
       {loading ? <><Spin /> Processing…</> : label}
     </button>
   );
@@ -293,17 +296,19 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
 
 function Card({ text, index, total, badge }: { text: string; index: number; total: number; badge?: string }) {
   const [c, setC] = useState(false);
+  const [hover, setHover] = useState(false);
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 12, padding: "15px 17px", marginBottom: 10, position: "relative" }}>
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ background: C.card, border: `1px solid ${hover ? C.orange + "55" : C.border2}`, borderRadius: 14, padding: "16px 18px", marginBottom: 10, position: "relative", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", boxShadow: hover ? `0 8px 30px -12px ${C.orangeGlow}` : "0 1px 0 rgba(255,255,255,0.03) inset" }}>
       {(total > 1 || badge) && (
-        <div style={{ display: "flex", gap: 7, marginBottom: 7 }}>
-          {total > 1 && <span style={{ fontSize: 10, color: C.orange, fontWeight: 700, background: C.orangeSoft, borderRadius: 6, padding: "1px 8px" }}>#{index + 1}</span>}
+        <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
+          {total > 1 && <span style={{ fontSize: 10, color: C.orange, fontWeight: 700, background: C.orangeSoft, border: `1px solid ${C.orange}33`, borderRadius: 6, padding: "1px 8px" }}>#{index + 1}</span>}
           {badge && <span style={{ fontSize: 10, color: C.teal, fontWeight: 700, background: "rgba(45,212,191,.12)", border: "1px solid rgba(45,212,191,.25)", borderRadius: 6, padding: "1px 8px", textTransform: "uppercase" }}>{badge}</span>}
         </div>
       )}
-      <p style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text, paddingRight: 80, whiteSpace: "pre-wrap" }}>{text}</p>
+      <p style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text, paddingRight: 82, whiteSpace: "pre-wrap" }}>{text}</p>
       <button onClick={() => { copy(text); setC(true); setTimeout(() => setC(false), 1500); }}
-        style={{ position: "absolute", top: 12, right: 12, background: c ? "rgba(34,197,94,.15)" : C.card2, border: `1px solid ${c ? "rgba(34,197,94,.4)" : C.border2}`, color: c ? C.green : C.muted, borderRadius: 7, padding: "4px 11px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+        style={{ position: "absolute", top: 13, right: 13, background: c ? "rgba(34,197,94,.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${c ? "rgba(34,197,94,.4)" : C.border2}`, color: c ? C.green : C.muted, borderRadius: 8, padding: "4px 11px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(6px)" }}>
         {c ? "✓ Copied" : "Copy"}
       </button>
     </div>
