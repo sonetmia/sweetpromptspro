@@ -143,11 +143,11 @@ const THEMES = {
     green: "#16a34a", red: "#dc2626", blue: "#2563eb", teal: "#0d9488", gold: "#d97706",
   },
   sweet: {
-    bg: "#1a1a2e", bgDeep: "#13131f", nav: "#1e1e30", card: "#252538", card2: "#2d2d45",
-    border: "#35354f", border2: "#3f3f5c",
-    orange: "#f5841f", orangeB: "#e06b0a", orangeSoft: "rgba(245,132,31,.14)", orangeGlow: "rgba(245,132,31,.3)",
-    purple: "#8b5cf6", purpleB: "#7c3aed", purpleSoft: "rgba(139,92,246,.15)",
-    text: "#f0f0f8", muted: "#9090b0", dim: "#4a4a68",
+    bg: "#0a0a0f", bgDeep: "#050508", nav: "rgba(12,12,20,0.72)", card: "rgba(24,24,36,0.72)", card2: "rgba(32,32,48,0.85)",
+    border: "rgba(255,255,255,0.08)", border2: "rgba(255,255,255,0.14)",
+    orange: "#f5841f", orangeB: "#e06b0a", orangeSoft: "rgba(245,132,31,.12)", orangeGlow: "rgba(245,132,31,.35)",
+    purple: "#a78bfa", purpleB: "#8b5cf6", purpleSoft: "rgba(167,139,250,.14)",
+    text: "#f5f5fa", muted: "#a0a0b8", dim: "#5a5a72",
     green: "#22c55e", red: "#ef4444", blue: "#60a5fa", teal: "#2dd4bf", gold: "#fbbf24",
   },
   futuristic: {
@@ -284,8 +284,11 @@ function Inp({ label, value, onChange, placeholder, type = "text" }: any) {
 function Btn({ onClick, loading, disabled, label, color }: any) {
   const bg = color || C.orange;
   const off = loading || disabled;
+  const [hover, setHover] = useState(false);
   return (
-    <button onClick={onClick} disabled={off} style={{ background: off ? C.dim : bg, color: "#fff", border: "none", borderRadius: 9, padding: "11px 24px", fontSize: 14, fontWeight: 700, cursor: off ? "not-allowed" : "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 7, boxShadow: off ? "none" : `0 4px 20px ${bg}55`, transition: "all .17s", letterSpacing: ".2px" }}>
+    <button onClick={onClick} disabled={off}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ background: off ? "rgba(255,255,255,0.06)" : `linear-gradient(180deg, ${bg} 0%, ${bg}dd 100%)`, color: off ? C.dim : "#fff", border: off ? `1px solid ${C.border2}` : `1px solid ${bg}`, borderRadius: 11, padding: "12px 26px", fontSize: 14, fontWeight: 700, cursor: off ? "not-allowed" : "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 7, boxShadow: off ? "none" : `0 6px 22px ${bg}44, inset 0 1px 0 rgba(255,255,255,0.22)`, letterSpacing: ".2px", transform: hover && !off ? "translateY(-1px)" : "none" }}>
       {loading ? <><Spin /> Processing…</> : label}
     </button>
   );
@@ -293,17 +296,19 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
 
 function Card({ text, index, total, badge }: { text: string; index: number; total: number; badge?: string }) {
   const [c, setC] = useState(false);
+  const [hover, setHover] = useState(false);
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 12, padding: "15px 17px", marginBottom: 10, position: "relative" }}>
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ background: C.card, border: `1px solid ${hover ? C.orange + "55" : C.border2}`, borderRadius: 14, padding: "16px 18px", marginBottom: 10, position: "relative", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", boxShadow: hover ? `0 8px 30px -12px ${C.orangeGlow}` : "0 1px 0 rgba(255,255,255,0.03) inset" }}>
       {(total > 1 || badge) && (
-        <div style={{ display: "flex", gap: 7, marginBottom: 7 }}>
-          {total > 1 && <span style={{ fontSize: 10, color: C.orange, fontWeight: 700, background: C.orangeSoft, borderRadius: 6, padding: "1px 8px" }}>#{index + 1}</span>}
+        <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
+          {total > 1 && <span style={{ fontSize: 10, color: C.orange, fontWeight: 700, background: C.orangeSoft, border: `1px solid ${C.orange}33`, borderRadius: 6, padding: "1px 8px" }}>#{index + 1}</span>}
           {badge && <span style={{ fontSize: 10, color: C.teal, fontWeight: 700, background: "rgba(45,212,191,.12)", border: "1px solid rgba(45,212,191,.25)", borderRadius: 6, padding: "1px 8px", textTransform: "uppercase" }}>{badge}</span>}
         </div>
       )}
-      <p style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text, paddingRight: 80, whiteSpace: "pre-wrap" }}>{text}</p>
+      <p style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text, paddingRight: 82, whiteSpace: "pre-wrap" }}>{text}</p>
       <button onClick={() => { copy(text); setC(true); setTimeout(() => setC(false), 1500); }}
-        style={{ position: "absolute", top: 12, right: 12, background: c ? "rgba(34,197,94,.15)" : C.card2, border: `1px solid ${c ? "rgba(34,197,94,.4)" : C.border2}`, color: c ? C.green : C.muted, borderRadius: 7, padding: "4px 11px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+        style={{ position: "absolute", top: 13, right: 13, background: c ? "rgba(34,197,94,.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${c ? "rgba(34,197,94,.4)" : C.border2}`, color: c ? C.green : C.muted, borderRadius: 8, padding: "4px 11px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", backdropFilter: "blur(6px)" }}>
         {c ? "✓ Copied" : "Copy"}
       </button>
     </div>
@@ -1384,14 +1389,14 @@ function Navbar({ page, setPage }: any) {
   const [aiOpen, setAiOpen] = useState(false);
   const [crOpen, setCrOpen] = useState(false);
   return (
-    <nav style={{ background: "rgba(0,0,0,0.55)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100, gap: 12, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
-      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid #fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fff" }} />
+    <nav style={{ background: "rgba(10,10,15,0.55)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, position: "sticky", top: 0, zIndex: 100, gap: 12, backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", boxShadow: "0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px -12px rgba(0,0,0,0.5)" }}>
+      <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 11 }}>
+        <span style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg, #fff 0%, #d4d4e0 100%)", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 22px rgba(245,132,31,.35), inset 0 0 0 1px rgba(255,255,255,.4)` }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "linear-gradient(135deg, #f5841f, #a78bfa)" }} />
         </span>
-        <span style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-.3px" }}>Sweet Prompts Pro</span>
+        <span style={{ fontFamily: "var(--display)", fontSize: 16.5, fontWeight: 700, color: "#fff", letterSpacing: "-.4px" }}>Sweet Prompts Pro</span>
       </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, backdropFilter: "blur(8px)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "5px 6px", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 999, backdropFilter: "blur(12px)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
         <Dropdown label="Creators" open={crOpen} setOpen={setCrOpen} items={CREATORS} setPage={setPage} active={CREATORS.some(c => c.id === page)} />
         <Dropdown label="AI Tools" open={aiOpen} setOpen={setAiOpen} items={AI_TOOLS} setPage={setPage} active={AI_TOOLS.some(c => c.id === page)} />
@@ -1491,33 +1496,65 @@ export default function App() {
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
         @keyframes neonPulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
         @keyframes heartBeat { 0%,100% { transform: scale(1); } 25% { transform: scale(1.12); } 50% { transform: scale(1); } 75% { transform: scale(1.08); } }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes ambientDrift { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-3%, 2%, 0); } }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body { background: ${C.bg}; font-family: ${bodyFont}; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: ${C.border2}; border-radius: 4px; }
-        select option { background: ${C.card}; color: ${C.text}; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${C.border2}; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: ${C.muted}; background-clip: padding-box; border: 2px solid transparent; }
+        select option { background: #16161f; color: ${C.text}; }
         ::placeholder { color: ${C.dim}; opacity: 1; }
+        ::selection { background: ${C.orange}55; color: ${C.text}; }
+        button, a { transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        ${themeKey === "sweet" ? `
+          body::before {
+            content: ""; position: fixed; inset: -20% -10% -10% -10%; z-index: 0; pointer-events: none;
+            background:
+              radial-gradient(60% 50% at 15% 0%, rgba(245,132,31,.10) 0%, transparent 60%),
+              radial-gradient(50% 40% at 90% 10%, rgba(167,139,250,.10) 0%, transparent 60%),
+              radial-gradient(45% 35% at 50% 100%, rgba(96,165,250,.06) 0%, transparent 70%);
+            filter: blur(20px); animation: ambientDrift 22s ease-in-out infinite;
+          }
+          body::after {
+            content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .35;
+            background-image:
+              linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+          }
+        ` : ""}
         ${isFuturistic ? `
           body { background-image: radial-gradient(circle at 20% 10%, ${C.orange}11 0%, transparent 50%), radial-gradient(circle at 80% 90%, ${C.purple}11 0%, transparent 50%); }
           h1, h2 { text-shadow: 0 0 20px ${C.orangeGlow}; }
         ` : ""}
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: bodyFont }}>
+      <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: bodyFont, position: "relative" }}>
+        <div style={{ position: "relative", zIndex: 1 }}>
         <Navbar page={page} setPage={setPage} />
         {page === "home" ? (
           <HomePage setPage={setPage} />
         ) : (
-          <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px 80px", animation: "fadeUp .22s ease" }}>
+          <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px 96px", animation: "fadeUp .28s ease" }}>
             {meta.title && (
-              <div style={{ marginBottom: 24 }}>
-                <h1 style={{ fontFamily: displayFont, fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 6, letterSpacing: "-.8px" }}>{meta.title}</h1>
-                {meta.desc && <p style={{ fontSize: 14, color: C.muted }}>{meta.desc}</p>}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.orangeSoft, border: `1px solid ${C.orange}33`, borderRadius: 999, padding: "4px 12px", marginBottom: 14 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.orange, boxShadow: `0 0 10px ${C.orangeGlow}` }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: C.orange, letterSpacing: ".6px", textTransform: "uppercase" }}>Sweet Prompts Pro</span>
+                </div>
+                <h1 style={{ fontFamily: displayFont, fontSize: 40, fontWeight: 800, color: C.text, marginBottom: 10, letterSpacing: "-1.2px", lineHeight: 1.1, backgroundImage: themeKey === "sweet" ? `linear-gradient(180deg, #ffffff 0%, #b8b8d0 100%)` : undefined, WebkitBackgroundClip: themeKey === "sweet" ? "text" : undefined, WebkitTextFillColor: themeKey === "sweet" ? "transparent" : undefined, backgroundClip: themeKey === "sweet" ? "text" : undefined }}>{meta.title}</h1>
+                {meta.desc && <p style={{ fontSize: 15.5, color: C.muted, lineHeight: 1.6, maxWidth: 640 }}>{meta.desc}</p>}
               </div>
             )}
             <PageContent page={page} themeKey={themeKey} setThemeKey={setThemeKey} />
           </div>
         )}
+        </div>
+
         <HeartButton />
       </div>
     </>
