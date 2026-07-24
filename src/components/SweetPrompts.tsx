@@ -143,11 +143,11 @@ const THEMES = {
     green: "#16a34a", red: "#dc2626", blue: "#2563eb", teal: "#0d9488", gold: "#d97706",
   },
   sweet: {
-    bg: "#1a1a2e", bgDeep: "#13131f", nav: "#1e1e30", card: "#252538", card2: "#2d2d45",
-    border: "#35354f", border2: "#3f3f5c",
-    orange: "#f5841f", orangeB: "#e06b0a", orangeSoft: "rgba(245,132,31,.14)", orangeGlow: "rgba(245,132,31,.3)",
-    purple: "#8b5cf6", purpleB: "#7c3aed", purpleSoft: "rgba(139,92,246,.15)",
-    text: "#f0f0f8", muted: "#9090b0", dim: "#4a4a68",
+    bg: "#0a0a0f", bgDeep: "#050508", nav: "rgba(12,12,20,0.72)", card: "rgba(24,24,36,0.72)", card2: "rgba(32,32,48,0.85)",
+    border: "rgba(255,255,255,0.08)", border2: "rgba(255,255,255,0.14)",
+    orange: "#f5841f", orangeB: "#e06b0a", orangeSoft: "rgba(245,132,31,.12)", orangeGlow: "rgba(245,132,31,.35)",
+    purple: "#a78bfa", purpleB: "#8b5cf6", purpleSoft: "rgba(167,139,250,.14)",
+    text: "#f5f5fa", muted: "#a0a0b8", dim: "#5a5a72",
     green: "#22c55e", red: "#ef4444", blue: "#60a5fa", teal: "#2dd4bf", gold: "#fbbf24",
   },
   futuristic: {
