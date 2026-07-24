@@ -1491,33 +1491,65 @@ export default function App() {
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
         @keyframes neonPulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
         @keyframes heartBeat { 0%,100% { transform: scale(1); } 25% { transform: scale(1.12); } 50% { transform: scale(1); } 75% { transform: scale(1.08); } }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes ambientDrift { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-3%, 2%, 0); } }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body { background: ${C.bg}; font-family: ${bodyFont}; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: ${C.border2}; border-radius: 4px; }
-        select option { background: ${C.card}; color: ${C.text}; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${C.border2}; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: ${C.muted}; background-clip: padding-box; border: 2px solid transparent; }
+        select option { background: #16161f; color: ${C.text}; }
         ::placeholder { color: ${C.dim}; opacity: 1; }
+        ::selection { background: ${C.orange}55; color: ${C.text}; }
+        button, a { transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        ${themeKey === "sweet" ? `
+          body::before {
+            content: ""; position: fixed; inset: -20% -10% -10% -10%; z-index: 0; pointer-events: none;
+            background:
+              radial-gradient(60% 50% at 15% 0%, rgba(245,132,31,.10) 0%, transparent 60%),
+              radial-gradient(50% 40% at 90% 10%, rgba(167,139,250,.10) 0%, transparent 60%),
+              radial-gradient(45% 35% at 50% 100%, rgba(96,165,250,.06) 0%, transparent 70%);
+            filter: blur(20px); animation: ambientDrift 22s ease-in-out infinite;
+          }
+          body::after {
+            content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .35;
+            background-image:
+              linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+          }
+        ` : ""}
         ${isFuturistic ? `
           body { background-image: radial-gradient(circle at 20% 10%, ${C.orange}11 0%, transparent 50%), radial-gradient(circle at 80% 90%, ${C.purple}11 0%, transparent 50%); }
           h1, h2 { text-shadow: 0 0 20px ${C.orangeGlow}; }
         ` : ""}
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: bodyFont }}>
+      <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: bodyFont, position: "relative" }}>
+        <div style={{ position: "relative", zIndex: 1 }}>
         <Navbar page={page} setPage={setPage} />
         {page === "home" ? (
           <HomePage setPage={setPage} />
         ) : (
-          <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px 80px", animation: "fadeUp .22s ease" }}>
+          <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px 96px", animation: "fadeUp .28s ease" }}>
             {meta.title && (
-              <div style={{ marginBottom: 24 }}>
-                <h1 style={{ fontFamily: displayFont, fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 6, letterSpacing: "-.8px" }}>{meta.title}</h1>
-                {meta.desc && <p style={{ fontSize: 14, color: C.muted }}>{meta.desc}</p>}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.orangeSoft, border: `1px solid ${C.orange}33`, borderRadius: 999, padding: "4px 12px", marginBottom: 14 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.orange, boxShadow: `0 0 10px ${C.orangeGlow}` }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: C.orange, letterSpacing: ".6px", textTransform: "uppercase" }}>Sweet Prompts Pro</span>
+                </div>
+                <h1 style={{ fontFamily: displayFont, fontSize: 40, fontWeight: 800, color: C.text, marginBottom: 10, letterSpacing: "-1.2px", lineHeight: 1.1, backgroundImage: themeKey === "sweet" ? `linear-gradient(180deg, #ffffff 0%, #b8b8d0 100%)` : undefined, WebkitBackgroundClip: themeKey === "sweet" ? "text" : undefined, WebkitTextFillColor: themeKey === "sweet" ? "transparent" : undefined, backgroundClip: themeKey === "sweet" ? "text" : undefined }}>{meta.title}</h1>
+                {meta.desc && <p style={{ fontSize: 15.5, color: C.muted, lineHeight: 1.6, maxWidth: 640 }}>{meta.desc}</p>}
               </div>
             )}
             <PageContent page={page} themeKey={themeKey} setThemeKey={setThemeKey} />
           </div>
         )}
+        </div>
+
         <HeartButton />
       </div>
     </>
