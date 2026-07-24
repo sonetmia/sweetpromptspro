@@ -845,6 +845,9 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
       <Divider label="AI Provider / API Key" />
       <ApiKeySettings />
 
+      <Divider label="AI API Providers" />
+      <AIProvidersSection C={C as any} />
+
       <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 9, padding: "13px 15px", marginTop: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 5, textTransform: "uppercase" }}>🔒 Privacy</div>
         <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Theme &amp; API keys are stored only in your browser (localStorage). Keys never leave your device except in direct calls to the provider you choose.</p>
