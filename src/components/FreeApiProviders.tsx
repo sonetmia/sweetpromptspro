@@ -390,7 +390,7 @@ export function CreatorCard({ C }: { C: Theme }) {
       }}
     >
       <img
-        src={creatorImg}
+        src={creatorAsset.url}
         alt="Md Sonet Mia"
         loading="lazy"
         width={72}
