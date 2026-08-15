@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import creatorImg from "@/assets/creator-md-sonet-mia.png";
+import creatorAsset from "@/assets/md-sonet-mia.png.asset.json";
 
 type Theme = Record<string, string>;
 
