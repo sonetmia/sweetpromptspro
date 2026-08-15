@@ -845,8 +845,15 @@ function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: 
       <Divider label="AI Provider / API Key" />
       <ApiKeySettings />
 
+      <Divider label="Free API Providers" />
+      <FreeApiProviders C={C as any} />
+
       <Divider label="AI API Providers" />
       <AIProvidersSection C={C as any} />
+
+      <Divider label="Creator" />
+      <CreatorCard C={C as any} />
+
 
       <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 9, padding: "13px 15px", marginTop: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 5, textTransform: "uppercase" }}>🔒 Privacy</div>
