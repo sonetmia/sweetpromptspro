@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 import { AIProvidersSection } from "@/components/AIProvidersSection";
+import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
+
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
 type Provider = "lovable" | "gemini" | "groq" | "mistral";
