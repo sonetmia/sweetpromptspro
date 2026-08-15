@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
-import { AIProvidersSection } from "@/components/AIProvidersSection";
 import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
 
 
@@ -809,58 +808,11 @@ function PromptLibrary() {
 function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: (t: ThemeKey) => void }) {
   return (
     <div>
-      <div style={{ background: `${C.orange}12`, border: `1px solid ${C.orange}33`, borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.orange, marginBottom: 6 }}>⚡ How AI Works Here</div>
-        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>By default, tools run on the <strong style={{ color: C.text }}>Lovable AI Gateway</strong> — no setup needed. You can also switch to your own <strong style={{ color: C.text }}>Gemini</strong>, <strong style={{ color: C.text }}>Groq</strong>, or <strong style={{ color: C.text }}>Mistral</strong> API key below. Vision features (Image → Prompts, Image → Metadata) work best with Lovable, Gemini, or Mistral.</p>
-      </div>
-
-      <Divider label="Theme" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12, marginBottom: 20 }}>
-        {(Object.keys(THEMES) as ThemeKey[]).map(k => {
-          const t = THEMES[k];
-          const active = themeKey === k;
-          const label = k === "simple" ? "Simple ☀" : k === "sweet" ? "Sweet (Default) ✦" : "Futuristic ⚡";
-          return (
-            <button key={k} onClick={() => setThemeKey(k)} style={{
-              background: active ? `linear-gradient(135deg,${t.orange}22,${t.purple}22)` : t.card,
-              border: `2px solid ${active ? t.orange : t.border2}`,
-              borderRadius: 14, padding: "16px 18px", cursor: "pointer", textAlign: "left",
-              fontFamily: "inherit", transition: "all .18s",
-              boxShadow: active ? `0 8px 30px ${t.orange}33` : "none",
-            }}>
-              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-                {[t.bg, t.card, t.orange, t.purple, t.text].map((col, i) => (
-                  <span key={i} style={{ width: 22, height: 22, borderRadius: 6, background: col, border: `1px solid ${t.border}` }} />
-                ))}
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{label}</div>
-              <div style={{ fontSize: 11.5, color: t.muted, marginTop: 4 }}>
-                {k === "simple" && "Clean light interface"}
-                {k === "sweet" && "Original dark warmth"}
-                {k === "futuristic" && "Neon cyber HUD"}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      <Divider label="AI Provider / API Key" />
-      <ApiKeySettings />
-
-      <Divider label="Free API Providers" />
+      <Divider label="API Keys" />
       <FreeApiProviders C={C as any} />
-
-      <Divider label="AI API Providers" />
-      <AIProvidersSection C={C as any} />
 
       <Divider label="Creator" />
       <CreatorCard C={C as any} />
-
-
-      <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 9, padding: "13px 15px", marginTop: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 5, textTransform: "uppercase" }}>🔒 Privacy</div>
-        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.65 }}>Theme &amp; API keys are stored only in your browser (localStorage). Keys never leave your device except in direct calls to the provider you choose.</p>
-      </div>
     </div>
   );
 }
