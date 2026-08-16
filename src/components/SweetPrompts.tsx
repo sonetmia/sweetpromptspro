@@ -2435,7 +2435,7 @@ function ShinyText({
   );
 }
 
-function HeroSection() {
+function HeroSection({ setPage }: { setPage: (p: string) => void }) {
   return (
     <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
       <video
@@ -2449,6 +2449,27 @@ function HeroSection() {
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mb-auto mt-4 sm:mt-12 z-20">
+          <button
+            onClick={() => setPage("imgprompts")}
+            className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-[#64CEFB]/20 to-[#a78bfa]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="text-2xl drop-shadow-md">🖼</span>
+            <span>Image → Prompts</span>
+          </button>
+
+          <button
+            onClick={() => setPage("imgmeta")}
+            className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
+          >
+            <span className="absolute inset-0 bg-gradient-to-r from-[#f5841f]/20 to-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="text-2xl drop-shadow-md">🏷</span>
+            <span>Image → Metadata</span>
+          </button>
+        </div>
+
         {/* Hero center */}
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
           <h1
@@ -2467,7 +2488,7 @@ function HomePage({ setPage }: { setPage: (p: string) => void }) {
   const [hover, setHover] = useState<string | null>(null);
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
-      <HeroSection />
+      <HeroSection setPage={setPage} />
     </div>
   );
 }
