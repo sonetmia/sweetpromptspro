@@ -542,8 +542,7 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
   const off = loading || disabled;
   const [hover, setHover] = useState(false);
   return (
-    <button
-      onClick={onClick}
+    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
       disabled={off}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -574,7 +573,7 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
       ) : (
         label
       )}
-    </button>
+    </motion.button>
   );
 }
 
@@ -980,8 +979,7 @@ function Divider({ label }: { label: string }) {
 
 function Chip({ label, active, onClick }: any) {
   return (
-    <button
-      onClick={onClick}
+    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
       style={{
         background: active ? C.orangeSoft : C.card2,
         border: `1px solid ${active ? C.orange + "66" : C.border}`,
@@ -995,7 +993,7 @@ function Chip({ label, active, onClick }: any) {
       }}
     >
       {label}
-    </button>
+    </motion.button>
   );
 }
 
@@ -2451,23 +2449,21 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
       <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mb-auto mt-4 sm:mt-12 z-20">
-          <button
-            onClick={() => setPage("imgprompts")}
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setPage("imgprompts")}
             className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-[#64CEFB]/20 to-[#a78bfa]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             <span className="text-2xl drop-shadow-md">🖼</span>
             <span>Image → Prompts</span>
-          </button>
+          </motion.button>
 
-          <button
-            onClick={() => setPage("imgmeta")}
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setPage("imgmeta")}
             className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-[#f5841f]/20 to-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             <span className="text-2xl drop-shadow-md">🏷</span>
             <span>Image → Metadata</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Hero center */}
@@ -2925,7 +2921,7 @@ function ImageToMetadata() {
             >
               {on ? "✓ " : ""}
               {m.label} <span style={{ opacity: 0.6, fontSize: 10 }}>·{m.kwMax}kw</span>
-            </button>
+      </button>
           );
         })}
       </div>
@@ -3067,8 +3063,6 @@ const AI_TOOLS = [
   { id: "translator", icon: "🌐", label: "Prompt Translator" },
   { id: "brainstorm", icon: "🧠", label: "Brainstormer" },
   { id: "silhouette", icon: "🔍", label: "Silhouette Finder" },
-  { id: "imgprompts", icon: "🖼", label: "Image → Prompts" },
-  { id: "imgmeta", icon: "🏷", label: "Image → Metadata" },
 ];
 
 const CREATORS = [
@@ -3188,46 +3182,19 @@ function Navbar({ page, setPage }: any) {
 
 function NavBtn({ label, active, onClick }: any) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        background: active ? "rgba(255,255,255,0.14)" : "transparent",
-        border: "1px solid transparent",
-        borderRadius: 999,
-        color: active ? "#fff" : "rgba(255,255,255,0.75)",
-        padding: "6px 14px",
-        fontSize: 13.5,
-        fontWeight: active ? 600 : 500,
-        cursor: "pointer",
-        fontFamily: "inherit",
-        transition: "all .15s",
-      }}
+    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+      className={`whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${active ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
     >
       {label}
-    </button>
+    </motion.button>
   );
 }
 
 function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   return (
     <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          background: open || active ? "rgba(255,255,255,0.14)" : "transparent",
-          border: "1px solid transparent",
-          borderRadius: 999,
-          color: open || active ? "#fff" : "rgba(255,255,255,0.75)",
-          padding: "6px 14px",
-          fontSize: 13.5,
-          fontWeight: active ? 600 : 500,
-          cursor: "pointer",
-          fontFamily: "inherit",
-          display: "flex",
-          alignItems: "center",
-          gap: 5,
-          transition: "all .15s",
-        }}
+      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1 whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${(open || active) ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
       >
         {label}{" "}
         <span
@@ -3239,7 +3206,7 @@ function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
         >
           ▾
         </span>
-      </button>
+      </motion.button>
 
       {open && (
         <div
