@@ -73,17 +73,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Sweet Prompts Pro" },
-      { name: "description", content: "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster." },
+      {
+        name: "description",
+        content:
+          "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Sweet Prompts Pro" },
-      { property: "og:description", content: "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster." },
+      {
+        property: "og:description",
+        content:
+          "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Sweet Prompts Pro" },
-      { name: "twitter:description", content: "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d946d13-f81c-4a80-b183-9d7a59fc55a6" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d946d13-f81c-4a80-b183-9d7a59fc55a6" },
+      {
+        name: "twitter:description",
+        content:
+          "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d946d13-f81c-4a80-b183-9d7a59fc55a6",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3d946d13-f81c-4a80-b183-9d7a59fc55a6",
+      },
     ],
     links: [
       {

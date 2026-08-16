@@ -22,7 +22,8 @@ export const callAIFn = createServerFn({ method: "POST" })
     });
     if (!res.ok) {
       if (res.status === 429) throw new Error("Rate limit reached. Please wait and retry.");
-      if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace settings.");
+      if (res.status === 402)
+        throw new Error("AI credits exhausted. Add credits in Workspace settings.");
       const t = await res.text().catch(() => "");
       throw new Error(`AI error ${res.status}: ${t.slice(0, 120)}`);
     }
@@ -31,7 +32,9 @@ export const callAIFn = createServerFn({ method: "POST" })
   });
 
 export const callAIVisionFn = createServerFn({ method: "POST" })
-  .inputValidator((d: { system: string; user: string; imageDataUrl: string; maxTokens?: number }) => d)
+  .inputValidator(
+    (d: { system: string; user: string; imageDataUrl: string; maxTokens?: number }) => d,
+  )
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("AI gateway not configured");
@@ -58,7 +61,8 @@ export const callAIVisionFn = createServerFn({ method: "POST" })
     });
     if (!res.ok) {
       if (res.status === 429) throw new Error("Rate limit reached. Please wait and retry.");
-      if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace settings.");
+      if (res.status === 402)
+        throw new Error("AI credits exhausted. Add credits in Workspace settings.");
       const t = await res.text().catch(() => "");
       throw new Error(`AI vision error ${res.status}: ${t.slice(0, 120)}`);
     }
