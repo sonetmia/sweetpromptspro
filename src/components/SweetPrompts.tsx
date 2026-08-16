@@ -1,3 +1,4 @@
+import { TypewriterEffect } from "./TypewriterEffect";
 import StockIntelligence from "./stock-intelligence/StockIntelligence";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -2454,14 +2455,7 @@ function HeroSection() {
             className="text-white font-medium tracking-tighter text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
             style={{ lineHeight: 0.85 }}
           >
-            <span className="block">Sweet</span>
-            <ShinyText
-              text="Prompts Pro."
-              speed={3}
-              baseColor="#64CEFB"
-              shineColor="#ffffff"
-              spread={100}
-            />
+            <span className="block" style={{ height: "1.2em" }}><TypewriterEffect words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]} /></span>
           </h1>
         </div>
       </div>
