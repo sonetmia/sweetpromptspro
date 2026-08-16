@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { motion } from "framer-motion";
+import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
 
