@@ -1,3 +1,5 @@
+import { TypewriterEffect } from "./TypewriterEffect";
+import StockIntelligence from "./stock-intelligence/StockIntelligence";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
@@ -2453,14 +2455,7 @@ function HeroSection() {
             className="text-white font-medium tracking-tighter text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
             style={{ lineHeight: 0.85 }}
           >
-            <span className="block">Sweet</span>
-            <ShinyText
-              text="Prompts Pro."
-              speed={3}
-              baseColor="#64CEFB"
-              shineColor="#ffffff"
-              spread={100}
-            />
+            <span className="block" style={{ height: "1.2em" }}><TypewriterEffect words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]} /></span>
           </h1>
         </div>
       </div>
@@ -3158,6 +3153,11 @@ function Navbar({ page, setPage }: any) {
           setPage={setPage}
           active={AI_TOOLS.some((c) => c.id === page)}
         />
+        <NavBtn
+          label="Stock Intelligence"
+          active={page === "stock-intelligence"}
+          onClick={() => setPage("stock-intelligence")}
+        />
         <NavBtn label="Library" active={page === "library"} onClick={() => setPage("library")} />
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
@@ -3325,6 +3325,7 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
     imgprompts: <ImageToPrompts />,
     imgmeta: <ImageToMetadata />,
     settings: <Settings themeKey={themeKey} setThemeKey={setThemeKey} />,
+    "stock-intelligence": <StockIntelligence />,
   };
   return pages[page] || null;
 }
