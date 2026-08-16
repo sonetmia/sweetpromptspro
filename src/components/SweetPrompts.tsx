@@ -745,7 +745,64 @@ function Brainstormer() {
 }
 
 // ── Library ───────────────────────────────────────────────────────────────────
-const LIBRARY: Record<string, string[]> = {
+const LIBRARY_GROUPS: Record<string, Record<string, string[]>> = {
+  "Trending Now": {
+    "Trending Concepts": [
+      "Minimal AI data-center aesthetic, glowing server racks, cool blue rim light, ultra clean composition, tech editorial stock photo",
+      "Quiet luxury flat lay, beige linen, ceramic mug, dried pampas grass, soft window light, neutral palette, lifestyle stock",
+      "Retro-futuristic Y2K chrome shapes floating on gradient backdrop, glossy 3D render, vibrant, design asset",
+    ],
+    "Trending Business": [
+      "Remote freelancer working from sunlit balcony, laptop and coffee, candid lifestyle, natural light, copy space",
+      "Small business owner packing eco-friendly parcels in bright studio, warm daylight, authentic commerce stock",
+    ],
+    "Trending AI & Tech": [
+      "Abstract neural network of glowing nodes on deep navy, depth of field, futuristic technology background, copy space",
+      "Person using AR glasses in modern loft, soft holographic UI reflections, cinematic teal lighting",
+    ],
+  },
+  "Seasonal": {
+    "Spring": [
+      "Cherry blossom branches against pale blue sky, soft bokeh, fresh spring mood, natural light, stock photo",
+      "Fresh spring vegetables on rustic wood table, overhead flat lay, airy daylight, food stock",
+    ],
+    "Summer": [
+      "Turquoise tropical beach with palm shade, top-down drone view, vivid summer colors, travel stock",
+      "Cold lemonade with condensation and mint on sunlit table, shallow depth of field, summer refreshment",
+    ],
+    "Autumn": [
+      "Golden maple leaves scattered on wet cobblestone, warm autumn palette, moody overcast light",
+      "Pumpkin spice latte on knitted blanket, cozy autumn flat lay, warm tones, copy space",
+    ],
+    "Winter": [
+      "Snow-covered pine forest at blue hour, soft falling snow, minimal winter landscape, wide angle",
+      "Steaming cocoa mug by frosted window, warm indoor glow, cozy winter still life",
+    ],
+  },
+  "Occasions & Holidays": {
+    "Christmas & New Year": [
+      "Elegant Christmas table setting, evergreen sprigs, gold candles, warm bokeh lights, festive stock photo",
+      "Gold confetti and champagne flutes on dark background, New Year celebration, transparent-ready isolated elements",
+    ],
+    "Valentine's Day": [
+      "Red rose petals and heart-shaped candles on marble, soft romantic light, Valentine flat lay",
+      "Isolated 3D glossy red heart on transparent background, clean alpha edges, PNG design asset",
+    ],
+    "Ramadan & Eid": [
+      "Crescent moon and lantern silhouettes on deep indigo night sky, elegant minimal Ramadan design, copy space",
+      "Traditional dates and Arabic coffee pot on brass tray, warm lantern light, Eid celebration still life",
+    ],
+    "Birthdays & Weddings": [
+      "Pastel birthday balloons isolated on transparent background, clean vector style, party design asset",
+      "Bridal bouquet of white peonies held in soft daylight, shallow depth of field, wedding stock photo",
+    ],
+    "Halloween & Thanksgiving": [
+      "Carved pumpkin silhouettes on dark misty background, moody Halloween atmosphere, cinematic",
+      "Thanksgiving harvest table with roasted vegetables, warm candlelight, overhead lifestyle stock",
+    ],
+  },
+  "Microstock Core": {
+
   "Microstock JPG": [
     "Professional businesswoman in modern glass office, confident posture, laptop open, natural window light, neutral background, photorealistic, 50mm lens, shallow DOF, Adobe Stock",
     "Fresh avocado toast on white ceramic plate, overhead flat lay, natural daylight, marble surface, food photography, sharp focus",
@@ -770,15 +827,45 @@ const LIBRARY: Record<string, string[]> = {
     "Ancient library inside hollowed Sequoia, warm amber lantern light, thousands of leather books, floating dust motes",
     "Cyberpunk night market Neo-Tokyo 2099, neon reflections on wet cobblestones, hovercars, holographic menus",
   ],
+  },
+  "Business & Marketing": {
+    "Corporate": [
+      "Diverse leadership team in bright boardroom reviewing charts, natural light, authentic corporate stock, copy space",
+      "Modern office desk with laptop, notebook and coffee, top-down flat lay, clean neutral background",
+    ],
+    "E-commerce": [
+      "Product packaging mockup on soft gradient backdrop, studio lighting, isolated commercial shot",
+      "Online shopping cart icon set, flat vector, transparent background, vibrant gradient, design asset",
+    ],
+  },
+  "Nature & Travel": {
+    "Landscapes": [
+      "Misty mountain ridges at sunrise, layered depth, aerial perspective, minimal travel landscape",
+      "Desert dunes with long shadows at golden hour, wide-angle, rich warm tones",
+    ],
+    "Wildlife & Plants": [
+      "Hummingbird hovering near tropical flower, high-speed capture, clean bokeh background",
+      "Monstera leaf close-up on plain pastel background, soft daylight, botanical minimal stock",
+    ],
+  },
 };
+
 
 function PromptLibrary() {
   const [copied, setCopied] = useState<string | null>(null);
+  const [group, setGroup] = useState<string>(Object.keys(LIBRARY_GROUPS)[0]);
   const [cat, setCat] = useState<string | null>(null);
-  const cats = Object.keys(LIBRARY);
-  const filtered = cat ? { [cat]: LIBRARY[cat] } : LIBRARY;
+  const groups = Object.keys(LIBRARY_GROUPS);
+  const lib = LIBRARY_GROUPS[group] || {};
+  const cats = Object.keys(lib);
+  const filtered: Record<string, string[]> = cat && lib[cat] ? { [cat]: lib[cat] } : lib;
   return (
     <div>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, fontWeight: 700, marginBottom: 8 }}>Main reference</div>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 16 }}>
+        {groups.map(g => <Chip key={g} label={g} active={group === g} onClick={() => { setGroup(g); setCat(null); }} />)}
+      </div>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, fontWeight: 700, marginBottom: 8 }}>Category</div>
       <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 20 }}>
         <Chip label="All" active={!cat} onClick={() => setCat(null)} />
         {cats.map(c => <Chip key={c} label={c} active={cat === c} onClick={() => setCat(cat === c ? null : c)} />)}
@@ -786,7 +873,8 @@ function PromptLibrary() {
       {Object.entries(filtered).map(([c, prompts]) => (
         <div key={c} style={{ marginBottom: 26 }}>
           <h3 style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, marginBottom: 10, fontWeight: 700 }}>{c}</h3>
-          {prompts.map((p, i) => {
+          {prompts.map((p: string, i: number) => {
+
             const k = `${c}-${i}`;
             return (
               <div key={i} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 10, padding: "13px 15px", marginBottom: 8, position: "relative" }}>
