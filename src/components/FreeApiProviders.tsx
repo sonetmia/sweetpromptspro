@@ -42,7 +42,7 @@ export const FREE_PROVIDERS: FreeProvider[] = [
     docs: "https://aistudio.google.com/apikey",
     validate: async (key) => {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
       );
       await ok(res);
     },
@@ -147,19 +147,22 @@ export function FreeApiProviders({ C }: { C: Theme }) {
     const key = (keys[p.id] || "").trim();
     if (!key) return;
     setBusy(p.id);
-    setStatus(s => ({ ...s, [p.id]: { ok: true, msg: "Validating…" } }));
+    setStatus((s) => ({ ...s, [p.id]: { ok: true, msg: "Validating…" } }));
     try {
       await p.validate(key);
       const next = { ...load(), [p.id]: { key, connectedAt: Date.now() } };
       persist(next);
       setConnected(next);
-      setStatus(s => ({ ...s, [p.id]: { ok: true, msg: "✓ API Validated Successfully — saved" } }));
+      setStatus((s) => ({
+        ...s,
+        [p.id]: { ok: true, msg: "✓ API Validated Successfully — saved" },
+      }));
     } catch (e: any) {
       const next = load();
       delete next[p.id];
       persist(next);
       setConnected(next);
-      setStatus(s => ({
+      setStatus((s) => ({
         ...s,
         [p.id]: { ok: false, msg: `✗ ${e?.message || "Could not validate this API key"}` },
       }));
@@ -173,8 +176,8 @@ export function FreeApiProviders({ C }: { C: Theme }) {
     delete next[id];
     persist(next);
     setConnected(next);
-    setStatus(s => ({ ...s, [id]: { ok: false, msg: "Disconnected" } }));
-    setKeys(k => ({ ...k, [id]: "" }));
+    setStatus((s) => ({ ...s, [id]: { ok: false, msg: "Disconnected" } }));
+    setKeys((k) => ({ ...k, [id]: "" }));
   }
 
   const connectedCount = Object.keys(connected).length;
@@ -192,7 +195,8 @@ export function FreeApiProviders({ C }: { C: Theme }) {
         }}
       >
         <p style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.65, maxWidth: 560 }}>
-          Pick a free provider, paste your key and validate it. Keys are stored only in this browser.
+          Pick a free provider, paste your key and validate it. Keys are stored only in this
+          browser.
         </p>
         <span
           style={{
@@ -210,7 +214,7 @@ export function FreeApiProviders({ C }: { C: Theme }) {
       </div>
 
       <div style={{ display: "grid", gap: 10 }}>
-        {FREE_PROVIDERS.map(p => {
+        {FREE_PROVIDERS.map((p) => {
           const isOpen = open === p.id;
           const conn = connected[p.id];
           const st = status[p.id];
@@ -274,7 +278,16 @@ export function FreeApiProviders({ C }: { C: Theme }) {
                     ● Connected
                   </span>
                 )}
-                <span style={{ color: C.muted, fontSize: 13, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}>▾</span>
+                <span
+                  style={{
+                    color: C.muted,
+                    fontSize: 13,
+                    transform: isOpen ? "rotate(180deg)" : "none",
+                    transition: "transform .18s",
+                  }}
+                >
+                  ▾
+                </span>
               </button>
 
               {isOpen && (
@@ -296,9 +309,9 @@ export function FreeApiProviders({ C }: { C: Theme }) {
                     <input
                       type="password"
                       value={key}
-                      onChange={e => {
-                        setKeys(k => ({ ...k, [p.id]: e.target.value }));
-                        setStatus(s => ({ ...s, [p.id]: undefined as any }));
+                      onChange={(e) => {
+                        setKeys((k) => ({ ...k, [p.id]: e.target.value }));
+                        setStatus((s) => ({ ...s, [p.id]: undefined as any }));
                       }}
                       placeholder={p.placeholder}
                       autoComplete="off"
@@ -320,7 +333,9 @@ export function FreeApiProviders({ C }: { C: Theme }) {
                       onClick={() => test(p)}
                       disabled={!key.trim() || busy === p.id}
                       style={{
-                        background: !key.trim() ? C.card2 : `linear-gradient(135deg,${C.orange},${C.purple})`,
+                        background: !key.trim()
+                          ? C.card2
+                          : `linear-gradient(135deg,${C.orange},${C.purple})`,
                         border: `1px solid ${!key.trim() ? C.border2 : "transparent"}`,
                         color: !key.trim() ? C.muted : "#fff",
                         borderRadius: 10,
@@ -353,7 +368,15 @@ export function FreeApiProviders({ C }: { C: Theme }) {
                       </button>
                     )}
                   </div>
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      marginTop: 10,
+                    }}
+                  >
                     <a
                       href={p.docs}
                       target="_blank"
@@ -363,7 +386,11 @@ export function FreeApiProviders({ C }: { C: Theme }) {
                       Get a free key ↗
                     </a>
                     {st?.msg && (
-                      <span style={{ fontSize: 12, fontWeight: 600, color: st.ok ? C.green : C.red }}>{st.msg}</span>
+                      <span
+                        style={{ fontSize: 12, fontWeight: 600, color: st.ok ? C.green : C.red }}
+                      >
+                        {st.msg}
+                      </span>
                     )}
                   </div>
                 </div>
