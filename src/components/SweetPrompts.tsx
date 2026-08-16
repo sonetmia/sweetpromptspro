@@ -960,9 +960,7 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
   );
 }
 
-const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
-
-function HeroSection({ setPage }: { setPage: (p: string) => void }) {
+function HeroSection() {
   return (
     <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
       <video
