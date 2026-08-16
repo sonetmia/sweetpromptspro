@@ -808,11 +808,11 @@ function PromptLibrary() {
 function Settings({ themeKey, setThemeKey }: { themeKey: ThemeKey; setThemeKey: (t: ThemeKey) => void }) {
   return (
     <div>
-      <Divider label="API Keys" />
-      <FreeApiProviders C={C as any} />
-
       <Divider label="Creator" />
       <CreatorCard C={C as any} />
+
+      <Divider label="API Keys" />
+      <FreeApiProviders C={C as any} />
     </div>
   );
 }
