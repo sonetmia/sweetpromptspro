@@ -963,17 +963,6 @@ function ShinyText({ text, speed = 3, baseColor = "#64CEFB", shineColor = "#ffff
 
 const HERO_NAV = ["Home", "About Us", "Courses", "Instructors", "Testimonials", "Blog"];
 
-const HERO_TOOLS = [
-  { id: "bulk", icon: "🖼", label: "Bulk Generator" },
-  { id: "idea", icon: "💡", label: "Idea Generator" },
-  { id: "jpg", icon: "📷", label: "JPG Creator" },
-  { id: "png", icon: "🟦", label: "PNG Creator" },
-  { id: "improver", icon: "⚡", label: "Improver" },
-  { id: "variations", icon: "🔀", label: "Variations" },
-  { id: "silhouette", icon: "🔍", label: "Silhouette" },
-  { id: "translator", icon: "🌐", label: "Translator" },
-];
-
 function HeroSection({ setPage }: { setPage: (p: string) => void }) {
   return (
     <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
@@ -988,13 +977,8 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-
-
         {/* Hero center */}
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
-          <p className="text-white/80 text-xs md:text-sm uppercase tracking-tight mb-4">
-            ✦ AI-Powered Microstock Prompt Studio
-          </p>
           <h1
             className="text-white font-medium tracking-tighter text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
             style={{ lineHeight: 0.85 }}
@@ -1002,53 +986,6 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             <span className="block">Sweet</span>
             <ShinyText text="Prompts Pro." speed={3} baseColor="#64CEFB" shineColor="#ffffff" spread={100} />
           </h1>
-
-          <motion.button
-            onClick={() => setPage("bulk")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.96 }}
-            className="group relative mt-10 inline-flex items-center gap-2 rounded-full px-7 md:px-9 py-3.5 md:py-4 text-sm md:text-base font-semibold text-white overflow-hidden"
-            style={{
-              background: "linear-gradient(110deg,#64CEFB 0%,#A78BFA 50%,#F472B6 100%)",
-              backgroundSize: "200% 100%",
-              boxShadow: "0 10px 40px -8px rgba(100,206,251,.55), 0 0 0 1px rgba(255,255,255,.15) inset",
-            }}
-          >
-            <motion.span
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%)",
-              }}
-              animate={{ x: ["-120%", "120%"] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
-            />
-            <span className="relative z-10 tracking-tight">✨ Bulk Prompts Generator</span>
-            <ArrowRight className="relative z-10 w-4 h-4 transition-transform group-hover:translate-x-1.5" />
-          </motion.button>
-
-          {/* Tool icons */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 md:gap-4 max-w-3xl">
-            {HERO_TOOLS.map((t, i) => (
-              <motion.button
-                key={t.id}
-                onClick={() => setPage(t.id)}
-                title={t.label}
-                aria-label={t.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: [0, -4, 0] }}
-                transition={{
-                  opacity: { duration: 0.4, delay: i * 0.06 },
-                  y: { duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 },
-                }}
-                whileHover={{ scale: 1.18, rotate: -6 }}
-                whileTap={{ scale: 0.92 }}
-                className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full border border-white/20 hover:border-white/70 bg-white/5 hover:bg-white/15 backdrop-blur-sm text-2xl md:text-3xl leading-none"
-              >
-                <span>{t.icon}</span>
-              </motion.button>
-            ))}
-          </div>
         </div>
       </div>
     </section>
