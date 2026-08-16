@@ -853,11 +853,19 @@ const LIBRARY_GROUPS: Record<string, Record<string, string[]>> = {
 
 function PromptLibrary() {
   const [copied, setCopied] = useState<string | null>(null);
+  const [group, setGroup] = useState<string>(Object.keys(LIBRARY_GROUPS)[0]);
   const [cat, setCat] = useState<string | null>(null);
-  const cats = Object.keys(LIBRARY);
-  const filtered = cat ? { [cat]: LIBRARY[cat] } : LIBRARY;
+  const groups = Object.keys(LIBRARY_GROUPS);
+  const lib = LIBRARY_GROUPS[group] || {};
+  const cats = Object.keys(lib);
+  const filtered: Record<string, string[]> = cat && lib[cat] ? { [cat]: lib[cat] } : lib;
   return (
     <div>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, fontWeight: 700, marginBottom: 8 }}>Main reference</div>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 16 }}>
+        {groups.map(g => <Chip key={g} label={g} active={group === g} onClick={() => { setGroup(g); setCat(null); }} />)}
+      </div>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, fontWeight: 700, marginBottom: 8 }}>Category</div>
       <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 20 }}>
         <Chip label="All" active={!cat} onClick={() => setCat(null)} />
         {cats.map(c => <Chip key={c} label={c} active={cat === c} onClick={() => setCat(cat === c ? null : c)} />)}
@@ -865,7 +873,8 @@ function PromptLibrary() {
       {Object.entries(filtered).map(([c, prompts]) => (
         <div key={c} style={{ marginBottom: 26 }}>
           <h3 style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "1.1px", color: C.muted, marginBottom: 10, fontWeight: 700 }}>{c}</h3>
-          {prompts.map((p, i) => {
+          {prompts.map((p: string, i: number) => {
+
             const k = `${c}-${i}`;
             return (
               <div key={i} style={{ background: C.card, border: `1px solid ${C.border2}`, borderRadius: 10, padding: "13px 15px", marginBottom: 8, position: "relative" }}>
