@@ -994,7 +994,7 @@ function HomePage({ setPage }: { setPage: (p: string) => void }) {
   const [hover, setHover] = useState<string | null>(null);
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
-      <HeroSection setPage={setPage} />
+      <HeroSection />
     </div>
   );
 }
