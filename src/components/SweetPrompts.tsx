@@ -1,3 +1,4 @@
+import StockIntelligence from "./stock-intelligence/StockIntelligence";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
@@ -3158,6 +3159,11 @@ function Navbar({ page, setPage }: any) {
           setPage={setPage}
           active={AI_TOOLS.some((c) => c.id === page)}
         />
+        <NavBtn
+          label="Stock Intelligence"
+          active={page === "stock-intelligence"}
+          onClick={() => setPage("stock-intelligence")}
+        />
         <NavBtn label="Library" active={page === "library"} onClick={() => setPage("library")} />
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
@@ -3325,6 +3331,7 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
     imgprompts: <ImageToPrompts />,
     imgmeta: <ImageToMetadata />,
     settings: <Settings themeKey={themeKey} setThemeKey={setThemeKey} />,
+    "stock-intelligence": <StockIntelligence />,
   };
   return pages[page] || null;
 }
