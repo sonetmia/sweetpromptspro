@@ -827,7 +827,29 @@ const LIBRARY_GROUPS: Record<string, Record<string, string[]>> = {
     "Ancient library inside hollowed Sequoia, warm amber lantern light, thousands of leather books, floating dust motes",
     "Cyberpunk night market Neo-Tokyo 2099, neon reflections on wet cobblestones, hovercars, holographic menus",
   ],
+  },
+  "Business & Marketing": {
+    "Corporate": [
+      "Diverse leadership team in bright boardroom reviewing charts, natural light, authentic corporate stock, copy space",
+      "Modern office desk with laptop, notebook and coffee, top-down flat lay, clean neutral background",
+    ],
+    "E-commerce": [
+      "Product packaging mockup on soft gradient backdrop, studio lighting, isolated commercial shot",
+      "Online shopping cart icon set, flat vector, transparent background, vibrant gradient, design asset",
+    ],
+  },
+  "Nature & Travel": {
+    "Landscapes": [
+      "Misty mountain ridges at sunrise, layered depth, aerial perspective, minimal travel landscape",
+      "Desert dunes with long shadows at golden hour, wide-angle, rich warm tones",
+    ],
+    "Wildlife & Plants": [
+      "Hummingbird hovering near tropical flower, high-speed capture, clean bokeh background",
+      "Monstera leaf close-up on plain pastel background, soft daylight, botanical minimal stock",
+    ],
+  },
 };
+
 
 function PromptLibrary() {
   const [copied, setCopied] = useState<string | null>(null);
