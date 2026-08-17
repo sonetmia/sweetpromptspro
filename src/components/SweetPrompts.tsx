@@ -3145,16 +3145,18 @@ function Navbar({ page, setPage }: any) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 2,
-          padding: "5px 6px",
+          gap: 8,
+          padding: "6px 10px",
           background: "rgba(255,255,255,0.035)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.09)",
           borderRadius: 999,
           backdropFilter: "blur(12px)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px -8px rgba(245,132,31,0.25)",
         }}
       >
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
+        <NavSep />
         <Dropdown
           label="Creators"
           open={crOpen}
@@ -3171,16 +3173,18 @@ function Navbar({ page, setPage }: any) {
           setPage={setPage}
           active={AI_TOOLS.some((c) => c.id === page)}
         />
-        <NavBtn
-          label="Stock Intelligence"
-          active={page === "stock-intelligence"}
-          onClick={() => setPage("stock-intelligence")}
-        />
+        <NavSep />
         <NavBtn
           label="Image Studio"
           active={page === "imgstudio"}
           onClick={() => setPage("imgstudio")}
         />
+        <NavBtn
+          label="Stock Intelligence"
+          active={page === "stock-intelligence"}
+          onClick={() => setPage("stock-intelligence")}
+        />
+        <NavSep />
         <NavBtn label="Library" active={page === "library"} onClick={() => setPage("library")} />
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
@@ -3188,15 +3192,32 @@ function Navbar({ page, setPage }: any) {
   );
 }
 
+function NavSep() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 1,
+        height: 18,
+        background:
+          "linear-gradient(180deg, transparent, rgba(255,255,255,0.16), transparent)",
+        margin: "0 2px",
+        flex: "0 0 auto",
+      }}
+    />
+  );
+}
+
 function NavBtn({ label, active, onClick }: any) {
   return (
     <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
-      className={`whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${active ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
+      className={`whitespace-nowrap px-[15px] py-[7px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 border ${active ? "bg-white/10 text-white font-semibold border-white/20 shadow-[0_0_18px_-4px_rgba(245,132,31,0.55)]" : "bg-white/[0.02] text-white/75 font-medium border-white/10 hover:bg-white/[0.07] hover:text-white hover:border-white/25 hover:shadow-[0_0_16px_-4px_rgba(245,132,31,0.45)]"}`}
     >
       {label}
     </motion.button>
   );
 }
+
 
 function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   return (
