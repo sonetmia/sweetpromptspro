@@ -3176,6 +3176,11 @@ function Navbar({ page, setPage }: any) {
           active={page === "stock-intelligence"}
           onClick={() => setPage("stock-intelligence")}
         />
+        <NavBtn
+          label="Image Studio"
+          active={page === "imgstudio"}
+          onClick={() => setPage("imgstudio")}
+        />
         <NavBtn label="Library" active={page === "library"} onClick={() => setPage("library")} />
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
@@ -3490,14 +3495,7 @@ const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   translator: { title: "Prompt Translator", desc: "Translate prompts into any language" },
   brainstorm: { title: "Brainstormer", desc: "Generate creative directions" },
   silhouette: { title: "Silhouette Finder", desc: "Clean isolated silhouette prompts" },
-  imgprompts: {
-    title: "Image → Prompts",
-    desc: "Upload images and generate AI prompts that recreate their style",
-  },
-  imgmeta: {
-    title: "Image → Metadata",
-    desc: "Generate microstock-ready title, keywords & category CSV from images",
-  },
+  imgstudio: { title: null },
   settings: { title: "Settings", desc: "Theme and preferences" },
 };
 
@@ -3515,8 +3513,7 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
     translator: <PromptTranslator />,
     brainstorm: <Brainstormer />,
     silhouette: <SilhouetteFinder />,
-    imgprompts: <ImageToPrompts />,
-    imgmeta: <ImageToMetadata />,
+    imgstudio: <ImageStudio />,
     settings: <Settings themeKey={themeKey} setThemeKey={setThemeKey} />,
     "stock-intelligence": <StockIntelligence />,
   };
