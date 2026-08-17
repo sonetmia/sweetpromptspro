@@ -2448,23 +2448,26 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
 
       <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full mb-auto mt-4 sm:mt-12 z-20">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setPage("imgprompts")}
-            className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
+        <div className="flex justify-center items-center w-full mb-auto mt-4 sm:mt-12 z-20">
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -3 }}
+            onClick={() => setPage("imgstudio")}
+            className="group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full text-white font-semibold text-lg overflow-hidden border border-white/25 bg-white/10 hover:bg-white/15 shadow-[0_0_50px_rgba(100,206,251,0.18)] transition-all duration-300"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-[#64CEFB]/20 to-[#a78bfa]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span className="text-2xl drop-shadow-md">🖼</span>
-            <span>Image → Prompts</span>
-          </motion.button>
-
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setPage("imgmeta")}
-            className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-semibold text-lg transition-all duration-300 ease-out overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)] hover:-translate-y-1 w-full sm:w-auto"
-          >
-            <span className="absolute inset-0 bg-gradient-to-r from-[#f5841f]/20 to-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span className="text-2xl drop-shadow-md">🏷</span>
-            <span>Image → Metadata</span>
+            <span className="absolute inset-0 bg-gradient-to-r from-[#64CEFB]/25 via-[#a78bfa]/25 to-[#f5841f]/25 opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+            <motion.span
+              aria-hidden
+              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{ x: ["-150%", "350%"] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: "linear" }}
+            />
+            <span className="relative text-2xl drop-shadow-md">🖼</span>
+            <span className="relative">Image Studio</span>
+            <span className="relative text-white/70 text-sm">Prompts + Metadata</span>
           </motion.button>
         </div>
+
 
         {/* Hero center */}
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
@@ -3173,6 +3176,11 @@ function Navbar({ page, setPage }: any) {
           active={page === "stock-intelligence"}
           onClick={() => setPage("stock-intelligence")}
         />
+        <NavBtn
+          label="Image Studio"
+          active={page === "imgstudio"}
+          onClick={() => setPage("imgstudio")}
+        />
         <NavBtn label="Library" active={page === "library"} onClick={() => setPage("library")} />
         <NavBtn label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
       </div>
@@ -3264,6 +3272,208 @@ function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   );
 }
 
+// ── Image Studio (Prompts + Metadata unified) ─────────────────────────────────
+const STUDIO_TABS = [
+  {
+    id: "prompts",
+    icon: "🖼",
+    label: "Image → Prompts",
+    hint: "Reverse-engineer any image into a production-ready AI prompt",
+    accent: "#64CEFB",
+    accent2: "#a78bfa",
+  },
+  {
+    id: "metadata",
+    icon: "🏷",
+    label: "Image → Metadata",
+    hint: "Marketplace-perfect titles, keywords & categories with CSV export",
+    accent: "#f5841f",
+    accent2: "#fbbf24",
+  },
+] as const;
+
+function ImageStudio() {
+  const [tab, setTab] = useState<"prompts" | "metadata">("prompts");
+  const active = STUDIO_TABS.find((t) => t.id === tab)!;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      {/* Studio header */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: 20,
+          border: `1px solid ${C.border2}`,
+          background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))`,
+          padding: "24px 26px",
+          backdropFilter: "blur(18px)",
+        }}
+      >
+        <motion.div
+          aria-hidden
+          animate={{ opacity: [0.25, 0.55, 0.25], scale: [1, 1.15, 1] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            top: -110,
+            right: -60,
+            width: 300,
+            height: 300,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${active.accent}55, transparent 70%)`,
+            filter: "blur(30px)",
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: `1px solid ${C.border2}`,
+              background: "rgba(255,255,255,0.05)",
+              fontSize: 11.5,
+              letterSpacing: ".14em",
+              textTransform: "uppercase",
+              color: C.muted,
+              fontWeight: 700,
+            }}
+          >
+            <motion.span
+              animate={{ opacity: [1, 0.2, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: active.accent,
+                display: "inline-block",
+              }}
+            />
+            AI Vision Studio
+          </div>
+          <h2
+            style={{
+              fontFamily: "var(--display)",
+              fontSize: 34,
+              fontWeight: 700,
+              letterSpacing: "-.03em",
+              color: C.text,
+              margin: "14px 0 6px",
+            }}
+          >
+            Image Studio
+          </h2>
+          <p style={{ color: C.muted, fontSize: 14.5, maxWidth: 620, lineHeight: 1.55 }}>
+            One workspace, two professional pipelines — turn any image into a perfect prompt, or
+            into marketplace-ready metadata. Bulk uploads supported in both.
+          </p>
+
+          {/* Tab switcher */}
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 4,
+              marginTop: 20,
+              padding: 5,
+              borderRadius: 999,
+              border: `1px solid ${C.border2}`,
+              background: "rgba(0,0,0,0.25)",
+            }}
+          >
+            {STUDIO_TABS.map((t) => {
+              const on = t.id === tab;
+              return (
+                <motion.button
+                  key={t.id}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setTab(t.id)}
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 20px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: 13.5,
+                    fontWeight: on ? 700 : 500,
+                    color: on ? "#0b0b10" : C.muted,
+                    background: on
+                      ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})`
+                      : "transparent",
+                    boxShadow: on ? `0 8px 26px -10px ${t.accent}` : "none",
+                    transition: "color .2s, background .2s",
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>{t.icon}</span>
+                  {t.label}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Active pipeline */}
+      <motion.section
+        key={tab}
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        style={{
+          borderRadius: 20,
+          border: `1px solid ${C.border2}`,
+          background: "rgba(255,255,255,0.02)",
+          padding: "22px 22px 26px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            paddingBottom: 16,
+            marginBottom: 20,
+            borderBottom: `1px solid ${C.border2}`,
+          }}
+        >
+          <span
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 19,
+              background: `linear-gradient(135deg, ${active.accent}30, ${active.accent2}22)`,
+              border: `1px solid ${C.border2}`,
+            }}
+          >
+            {active.icon}
+          </span>
+          <div>
+            <div style={{ color: C.text, fontWeight: 700, fontSize: 16 }}>{active.label}</div>
+            <div style={{ color: C.muted, fontSize: 13 }}>{active.hint}</div>
+          </div>
+        </div>
+
+        {tab === "prompts" ? <ImageToPrompts /> : <ImageToMetadata />}
+      </motion.section>
+    </div>
+  );
+}
+
 // ── Page wrapper ──────────────────────────────────────────────────────────────
 const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   home: { title: null },
@@ -3285,14 +3495,7 @@ const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   translator: { title: "Prompt Translator", desc: "Translate prompts into any language" },
   brainstorm: { title: "Brainstormer", desc: "Generate creative directions" },
   silhouette: { title: "Silhouette Finder", desc: "Clean isolated silhouette prompts" },
-  imgprompts: {
-    title: "Image → Prompts",
-    desc: "Upload images and generate AI prompts that recreate their style",
-  },
-  imgmeta: {
-    title: "Image → Metadata",
-    desc: "Generate microstock-ready title, keywords & category CSV from images",
-  },
+  imgstudio: { title: null },
   settings: { title: "Settings", desc: "Theme and preferences" },
 };
 
@@ -3310,8 +3513,7 @@ function PageContent({ page, themeKey, setThemeKey }: any) {
     translator: <PromptTranslator />,
     brainstorm: <Brainstormer />,
     silhouette: <SilhouetteFinder />,
-    imgprompts: <ImageToPrompts />,
-    imgmeta: <ImageToMetadata />,
+    imgstudio: <ImageStudio />,
     settings: <Settings themeKey={themeKey} setThemeKey={setThemeKey} />,
     "stock-intelligence": <StockIntelligence />,
   };
