@@ -3264,6 +3264,208 @@ function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   );
 }
 
+// ── Image Studio (Prompts + Metadata unified) ─────────────────────────────────
+const STUDIO_TABS = [
+  {
+    id: "prompts",
+    icon: "🖼",
+    label: "Image → Prompts",
+    hint: "Reverse-engineer any image into a production-ready AI prompt",
+    accent: "#64CEFB",
+    accent2: "#a78bfa",
+  },
+  {
+    id: "metadata",
+    icon: "🏷",
+    label: "Image → Metadata",
+    hint: "Marketplace-perfect titles, keywords & categories with CSV export",
+    accent: "#f5841f",
+    accent2: "#fbbf24",
+  },
+] as const;
+
+function ImageStudio() {
+  const [tab, setTab] = useState<"prompts" | "metadata">("prompts");
+  const active = STUDIO_TABS.find((t) => t.id === tab)!;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      {/* Studio header */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: 20,
+          border: `1px solid ${C.border2}`,
+          background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))`,
+          padding: "24px 26px",
+          backdropFilter: "blur(18px)",
+        }}
+      >
+        <motion.div
+          aria-hidden
+          animate={{ opacity: [0.25, 0.55, 0.25], scale: [1, 1.15, 1] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            top: -110,
+            right: -60,
+            width: 300,
+            height: 300,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${active.accent}55, transparent 70%)`,
+            filter: "blur(30px)",
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: `1px solid ${C.border2}`,
+              background: "rgba(255,255,255,0.05)",
+              fontSize: 11.5,
+              letterSpacing: ".14em",
+              textTransform: "uppercase",
+              color: C.muted,
+              fontWeight: 700,
+            }}
+          >
+            <motion.span
+              animate={{ opacity: [1, 0.2, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: active.accent,
+                display: "inline-block",
+              }}
+            />
+            AI Vision Studio
+          </div>
+          <h2
+            style={{
+              fontFamily: "var(--display)",
+              fontSize: 34,
+              fontWeight: 700,
+              letterSpacing: "-.03em",
+              color: C.text,
+              margin: "14px 0 6px",
+            }}
+          >
+            Image Studio
+          </h2>
+          <p style={{ color: C.muted, fontSize: 14.5, maxWidth: 620, lineHeight: 1.55 }}>
+            One workspace, two professional pipelines — turn any image into a perfect prompt, or
+            into marketplace-ready metadata. Bulk uploads supported in both.
+          </p>
+
+          {/* Tab switcher */}
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 4,
+              marginTop: 20,
+              padding: 5,
+              borderRadius: 999,
+              border: `1px solid ${C.border2}`,
+              background: "rgba(0,0,0,0.25)",
+            }}
+          >
+            {STUDIO_TABS.map((t) => {
+              const on = t.id === tab;
+              return (
+                <motion.button
+                  key={t.id}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setTab(t.id)}
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 20px",
+                    borderRadius: 999,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: 13.5,
+                    fontWeight: on ? 700 : 500,
+                    color: on ? "#0b0b10" : C.muted,
+                    background: on
+                      ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})`
+                      : "transparent",
+                    boxShadow: on ? `0 8px 26px -10px ${t.accent}` : "none",
+                    transition: "color .2s, background .2s",
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>{t.icon}</span>
+                  {t.label}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Active pipeline */}
+      <motion.section
+        key={tab}
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        style={{
+          borderRadius: 20,
+          border: `1px solid ${C.border2}`,
+          background: "rgba(255,255,255,0.02)",
+          padding: "22px 22px 26px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            paddingBottom: 16,
+            marginBottom: 20,
+            borderBottom: `1px solid ${C.border2}`,
+          }}
+        >
+          <span
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 19,
+              background: `linear-gradient(135deg, ${active.accent}30, ${active.accent2}22)`,
+              border: `1px solid ${C.border2}`,
+            }}
+          >
+            {active.icon}
+          </span>
+          <div>
+            <div style={{ color: C.text, fontWeight: 700, fontSize: 16 }}>{active.label}</div>
+            <div style={{ color: C.muted, fontSize: 13 }}>{active.hint}</div>
+          </div>
+        </div>
+
+        {tab === "prompts" ? <ImageToPrompts /> : <ImageToMetadata />}
+      </motion.section>
+    </div>
+  );
+}
+
 // ── Page wrapper ──────────────────────────────────────────────────────────────
 const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   home: { title: null },
