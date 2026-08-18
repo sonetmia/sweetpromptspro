@@ -2435,48 +2435,154 @@ function ShinyText({
 
 function HeroSection({ setPage }: { setPage: (p: string) => void }) {
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-black font-[Inter,sans-serif]">
+    <section
+      className="relative isolate w-full overflow-hidden bg-[#05060a] text-white"
+      style={{ minHeight: "min(860px, calc(100vh - 72px))" }}
+    >
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover opacity-30"
+        style={{ transform: "scale(1.04)" }}
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_105406_16f4600d-7a92-4292-b96e-b19156c7830a.mp4"
       />
-      <div className="absolute inset-0 bg-black/40" />
 
-      <div className="relative z-10 flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 72% 35%, rgba(167,139,250,.22), transparent 28%), radial-gradient(circle at 20% 72%, rgba(245,132,31,.16), transparent 28%), linear-gradient(115deg, rgba(5,6,10,.98) 8%, rgba(5,6,10,.76) 48%, rgba(5,6,10,.9) 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+          maskImage: "radial-gradient(ellipse at 68% 44%, black 8%, transparent 68%)",
+          WebkitMaskImage: "radial-gradient(ellipse at 68% 44%, black 8%, transparent 68%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-40"
+        style={{ background: "linear-gradient(to bottom, transparent, #05060a)" }}
+      />
 
-        <div className="flex justify-center items-center w-full mb-auto mt-4 sm:mt-12 z-20">
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            whileHover={{ y: -3 }}
-            onClick={() => setPage("imgstudio")}
-            className="group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full text-white font-semibold text-lg overflow-hidden border border-white/25 bg-white/10 hover:bg-white/15 shadow-[0_0_50px_rgba(100,206,251,0.18)] transition-all duration-300"
+      <div className="relative z-10 mx-auto flex min-h-[inherit] w-full max-w-7xl items-center px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
+        <div className="grid w-full items-center gap-14 lg:grid-cols-[minmax(0,1.02fr)_minmax(420px,.78fr)] lg:gap-20">
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+            className="max-w-3xl"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-[#64CEFB]/25 via-[#a78bfa]/25 to-[#f5841f]/25 opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
-            <motion.span
-              aria-hidden
-              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-              animate={{ x: ["-150%", "350%"] }}
-              transition={{ duration: 2.6, repeat: Infinity, ease: "linear" }}
-            />
-            <span className="relative text-2xl drop-shadow-md">🖼</span>
-            <span className="relative">Image Studio</span>
-            <span className="relative text-white/70 text-sm">Prompts + Metadata</span>
-          </motion.button>
-        </div>
+            <div className="mb-7 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[.06] px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-white/70 backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-[#f5841f] shadow-[0_0_14px_rgba(245,132,31,.85)]" />
+              AI microstock prompt studio
+            </div>
 
+            <h1 className="max-w-3xl text-[clamp(3.4rem,7vw,7.2rem)] font-semibold leading-[.93] tracking-[-.07em] text-white">
+              Turn raw ideas into
+              <span
+                className="block bg-gradient-to-r from-white via-[#d9d2ff] to-[#a78bfa] bg-clip-text text-transparent"
+                style={{ paddingBottom: ".08em" }}
+              >
+                prompts that perform.
+              </span>
+            </h1>
 
-        {/* Hero center */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center pb-10">
-          <h1
-            className="text-white font-medium tracking-tighter text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl"
-            style={{ lineHeight: 0.85 }}
+            <p className="mt-7 max-w-xl text-base leading-7 text-white/62 sm:text-lg sm:leading-8">
+              Build clear, commercially minded prompts for image generation, metadata, and creative production—without the clutter.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setPage("imgstudio")}
+                className="group inline-flex items-center justify-center gap-3 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-[#0a0a0f] shadow-[0_12px_40px_rgba(255,255,255,.12)] transition hover:bg-[#f4f1ff]"
+              >
+                Open Image Studio
+                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setPage("bulk")}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/18 bg-white/[.05] px-5 py-3.5 text-sm font-semibold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[.1]"
+              >
+                Explore prompt tools
+                <span className="text-white/45">↗</span>
+              </motion.button>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-white/45">
+              <span className="inline-flex items-center gap-2"><span className="text-[#f5841f]">✦</span> JPG-ready prompts</span>
+              <span className="inline-flex items-center gap-2"><span className="text-[#a78bfa]">✦</span> PNG asset concepts</span>
+              <span className="inline-flex items-center gap-2"><span className="text-[#60a5fa]">✦</span> Metadata workflows</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 28, scale: .97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.75, delay: 0.08, ease: "easeOut" }}
+            className="relative mx-auto w-full max-w-[520px] lg:mx-0"
           >
-            <span className="block" style={{ height: "1.2em" }}><TypewriterEffect words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]} /></span>
-          </h1>
+            <div aria-hidden="true" className="absolute -inset-10 rounded-full bg-[#8b5cf6]/15 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[26px] border border-white/15 bg-[#10111a]/80 p-4 shadow-[0_30px_100px_rgba(0,0,0,.45)] backdrop-blur-2xl sm:p-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f5841f] to-[#a78bfa] text-sm font-bold text-white">SP</span>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Prompt workspace</div>
+                    <div className="text-[11px] text-white/40">Production-ready output</div>
+                  </div>
+                </div>
+                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Ready</span>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.045] p-4 sm:p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">Generated prompt</span>
+                  <span className="text-xs text-white/35">01 / 20</span>
+                </div>
+                <p className="text-sm leading-7 text-white/78 sm:text-[15px] sm:leading-8">
+                  Editorial lifestyle photograph of a sustainable urban workspace, warm natural light, refined neutral palette, clean commercial composition, subtle depth of field, generous negative space for copy, premium stock quality.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {['Editorial', 'Commercial', 'Natural light'].map((tag) => (
+                    <span key={tag} className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-medium text-white/48">{tag}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {[
+                  ['Clarity', '98%'],
+                  ['Specificity', '94%'],
+                  ['Ready', 'Yes'],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl border border-white/8 bg-white/[.035] px-3 py-3">
+                    <div className="text-[10px] text-white/35">{label}</div>
+                    <div className="mt-1 text-sm font-semibold text-white/80">{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                <span className="text-[11px] text-white/35">Generated in SweetPromptsPro</span>
+                <button onClick={() => setPage("imgstudio")} className="rounded-lg border border-white/15 bg-white/[.07] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[.13]">Open studio →</button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
