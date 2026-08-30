@@ -21,7 +21,7 @@ async function getPerceptualHash(dataUrl: string): Promise<string> {
       let total = 0;
       const grays = [];
       for (let i = 0; i < imgData.length; i += 4) {
-        const gray = imgData[i] * 0.299 + imgData[i+1] * 0.587 + imgData[i+2] * 0.114;
+        const gray = imgData[i] * 0.299 + imgData[i + 1] * 0.587 + imgData[i + 2] * 0.114;
         grays.push(gray);
         total += gray;
       }
@@ -57,7 +57,10 @@ function fileToDataUrl(f: File): Promise<string> {
 }
 
 type AnalyzedImage = { file: File; dataUrl: string; hash: string };
-type DuplicateGroup = { master: AnalyzedImage; duplicates: { img: AnalyzedImage; distance: number }[] };
+type DuplicateGroup = {
+  master: AnalyzedImage;
+  duplicates: { img: AnalyzedImage; distance: number }[];
+};
 
 export default function SimilarityChecker() {
   const [images, setImages] = useState<AnalyzedImage[]>([]);
@@ -73,7 +76,7 @@ export default function SimilarityChecker() {
     const newImages: AnalyzedImage[] = [];
 
     for (let i = 0; i < files.length; i++) {
-      setProgress(Math.round(((i) / files.length) * 100));
+      setProgress(Math.round((i / files.length) * 100));
       const dataUrl = await fileToDataUrl(files[i]);
       const hash = await getPerceptualHash(dataUrl);
       newImages.push({ file: files[i], dataUrl, hash });
@@ -120,71 +123,170 @@ export default function SimilarityChecker() {
   };
 
   const removeGroup = (index: number) => {
-    setGroups(prev => prev.filter((_, i) => i !== index));
+    setGroups((prev) => prev.filter((_, i) => i !== index));
     // Also remove them from the images list if we wanted to be thorough, but keeping it simple for now
   };
 
   return (
     <div>
-      <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>Duplicate & Similarity Checker</h2>
+      <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>
+        Duplicate & Similarity Checker
+      </h2>
       <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: 24 }}>
-        Batch upload images to find visually similar or near-duplicate content before submitting to Adobe Stock. <br/>
+        Batch upload images to find visually similar or near-duplicate content before submitting to
+        Adobe Stock. <br />
         Uses local client-side analysis.
       </p>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-        <label style={{
-          background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.2)",
-          padding: "20px", borderRadius: 12, cursor: "pointer", textAlign: "center", flex: 1,
-          transition: "background 0.2s"
-        }}>
+        <label
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px dashed rgba(255,255,255,0.2)",
+            padding: "20px",
+            borderRadius: 12,
+            cursor: "pointer",
+            textAlign: "center",
+            flex: 1,
+            transition: "background 0.2s",
+          }}
+        >
           {processing ? (
             <span style={{ color: "#fff", fontWeight: 600 }}>Analyzing... {progress}%</span>
           ) : (
             <>
               <span style={{ color: "#fff", fontWeight: 600 }}>Click to Upload Batch</span>
-              <br /><span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>(Select multiple JPG/PNG files)</span>
+              <br />
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+                (Select multiple JPG/PNG files)
+              </span>
             </>
           )}
-          <input type="file" multiple accept="image/jpeg, image/png" onChange={handleFiles} disabled={processing} style={{ display: "none" }} />
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg, image/png"
+            onChange={handleFiles}
+            disabled={processing}
+            style={{ display: "none" }}
+          />
         </label>
 
         {images.length > 0 && (
-           <button onClick={clearAll} style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "none", padding: "0 20px", borderRadius: 12, cursor: "pointer", fontWeight: 600 }}>Clear All</button>
+          <button
+            onClick={clearAll}
+            style={{
+              background: "rgba(239,68,68,0.2)",
+              color: "#ef4444",
+              border: "none",
+              padding: "0 20px",
+              borderRadius: 12,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Clear All
+          </button>
         )}
       </div>
 
       {images.length > 0 && (
         <div style={{ marginBottom: 24, display: "flex", gap: 16 }}>
-          <div style={{ background: "rgba(255,255,255,0.05)", padding: "10px 20px", borderRadius: 8 }}>Total Images: <strong>{images.length}</strong></div>
-          <div style={{ background: "rgba(255,255,255,0.05)", padding: "10px 20px", borderRadius: 8 }}>Similar Groups Found: <strong>{groups.length}</strong></div>
+          <div
+            style={{ background: "rgba(255,255,255,0.05)", padding: "10px 20px", borderRadius: 8 }}
+          >
+            Total Images: <strong>{images.length}</strong>
+          </div>
+          <div
+            style={{ background: "rgba(255,255,255,0.05)", padding: "10px 20px", borderRadius: 8 }}
+          >
+            Similar Groups Found: <strong>{groups.length}</strong>
+          </div>
         </div>
       )}
 
       {groups.length === 0 && images.length > 0 && !processing && (
-         <div style={{ color: "#22c55e", padding: 20, background: "rgba(34,197,94,0.1)", borderRadius: 12, textAlign: "center" }}>
-           Great! No visually similar images detected in this batch.
-         </div>
+        <div
+          style={{
+            color: "#22c55e",
+            padding: 20,
+            background: "rgba(34,197,94,0.1)",
+            borderRadius: 12,
+            textAlign: "center",
+          }}
+        >
+          Great! No visually similar images detected in this batch.
+        </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {groups.map((g, i) => (
-          <div key={i} style={{ background: "rgba(255,255,255,0.03)", padding: 20, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 16, color: "#f5841f" }}>Possible Duplicate Group {i + 1} ({g.duplicates.length + 1} images)</h3>
-              <button onClick={() => removeGroup(i)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>Dismiss</button>
+          <div
+            key={i}
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              padding: 20,
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.05)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <h3 style={{ fontSize: 16, color: "#f5841f" }}>
+                Possible Duplicate Group {i + 1} ({g.duplicates.length + 1} images)
+              </h3>
+              <button
+                onClick={() => removeGroup(i)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.5)",
+                  cursor: "pointer",
+                }}
+              >
+                Dismiss
+              </button>
             </div>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
               <div style={{ width: 120 }}>
-                <img src={g.master.dataUrl} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 8, border: "2px solid #a78bfa" }} />
-                <div style={{ fontSize: 12, textAlign: "center", marginTop: 4, color: "rgba(255,255,255,0.6)" }}>Reference Image</div>
+                <img
+                  src={g.master.dataUrl}
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    objectFit: "cover",
+                    borderRadius: 8,
+                    border: "2px solid #a78bfa",
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: 12,
+                    textAlign: "center",
+                    marginTop: 4,
+                    color: "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  Reference Image
+                </div>
               </div>
 
               {g.duplicates.map((dup, j) => (
                 <div key={j} style={{ width: 120 }}>
-                  <img src={dup.img.dataUrl} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 8 }} />
-                  <div style={{ fontSize: 12, textAlign: "center", marginTop: 4, color: "#ef4444" }}>
+                  <img
+                    src={dup.img.dataUrl}
+                    style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 8 }}
+                  />
+                  <div
+                    style={{ fontSize: 12, textAlign: "center", marginTop: 4, color: "#ef4444" }}
+                  >
                     Similarity: {100 - Math.round((dup.distance / 64) * 100)}%
                   </div>
                 </div>
@@ -192,7 +294,9 @@ export default function SimilarityChecker() {
             </div>
 
             <p style={{ marginTop: 16, fontSize: 14, color: "rgba(255,255,255,0.6)" }}>
-              <strong>Recommended Action:</strong> Review these images. Adobe Stock may reject them as similar content. Consider keeping only the best one or varying the concepts more significantly.
+              <strong>Recommended Action:</strong> Review these images. Adobe Stock may reject them
+              as similar content. Consider keeping only the best one or varying the concepts more
+              significantly.
             </p>
           </div>
         ))}

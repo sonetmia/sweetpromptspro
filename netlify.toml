@@ -1,0 +1,10 @@
+[build]
+  command = "bun run build"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+  BUN_VERSION = "1.0.0"
+
+[functions]
+  directory = ".output/server"
