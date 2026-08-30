@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { generateKeywords } from "./api";
+import { aiErrorMessage } from "@/lib/ai/errors";
 
 export default function KeywordIntelligence() {
   const [topic, setTopic] = useState("");
@@ -15,8 +16,8 @@ export default function KeywordIntelligence() {
     try {
       const res = await generateKeywords(topic, contentType);
       setResult(res);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -30,14 +31,49 @@ export default function KeywordIntelligence() {
     if (!keywords || !keywords.length) return null;
     const textToCopy = keywords.join(", ");
     return (
-      <div style={{ background: "rgba(255,255,255,0.03)", padding: 20, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#a78bfa" }}>{title} ({keywords.length})</h3>
-          <button onClick={() => copyToClipboard(textToCopy)} style={{ background: "none", border: "none", color: "#60a5fa", cursor: "pointer", fontSize: 13 }}>Copy All</button>
+      <div
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          padding: 20,
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#a78bfa" }}>
+            {title} ({keywords.length})
+          </h3>
+          <button
+            onClick={() => copyToClipboard(textToCopy)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#60a5fa",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            Copy All
+          </button>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {keywords.map((kw, i) => (
-            <span key={i} style={{ padding: "4px 10px", background: "rgba(255,255,255,0.1)", borderRadius: 6, fontSize: 13 }}>
+            <span
+              key={i}
+              style={{
+                padding: "4px 10px",
+                background: "rgba(255,255,255,0.1)",
+                borderRadius: 6,
+                fontSize: 13,
+              }}
+            >
               {kw}
             </span>
           ))}
@@ -56,20 +92,30 @@ export default function KeywordIntelligence() {
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
         <input
           value={topic}
-          onChange={e => setTopic(e.target.value)}
+          onChange={(e) => setTopic(e.target.value)}
           placeholder="Describe the image/topic..."
           style={{
-            flex: 2, padding: "12px 16px", borderRadius: 8, background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none"
+            flex: 2,
+            padding: "12px 16px",
+            borderRadius: 8,
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#fff",
+            outline: "none",
           }}
-          onKeyDown={e => e.key === "Enter" && handleGenerate()}
+          onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
         />
         <select
           value={contentType}
-          onChange={e => setContentType(e.target.value)}
+          onChange={(e) => setContentType(e.target.value)}
           style={{
-            flex: 1, padding: "12px 16px", borderRadius: 8, background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none"
+            flex: 1,
+            padding: "12px 16px",
+            borderRadius: 8,
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#fff",
+            outline: "none",
           }}
         >
           <option value="Photo">Photo</option>
@@ -82,29 +128,66 @@ export default function KeywordIntelligence() {
           disabled={loading || !topic.trim()}
           style={{
             background: loading ? "rgba(255,255,255,0.1)" : "#f5841f",
-            color: "#fff", padding: "0 24px", borderRadius: 8, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer"
+            color: "#fff",
+            padding: "0 24px",
+            borderRadius: 8,
+            fontWeight: 600,
+            border: "none",
+            cursor: loading ? "not-allowed" : "pointer",
           }}
         >
           {loading ? "Generating..." : "Generate Keywords"}
         </button>
       </div>
 
-      {error && <div style={{ color: "#ef4444", padding: 16, background: "rgba(239,68,68,0.1)", borderRadius: 8, marginBottom: 24 }}>{error}</div>}
+      {error && (
+        <div
+          style={{
+            color: "#ef4444",
+            padding: 16,
+            background: "rgba(239,68,68,0.1)",
+            borderRadius: 8,
+            marginBottom: 24,
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       {result && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
             <button
               onClick={() => {
-                const all = [...(result.primary || []), ...(result.secondary || []), ...(result.longTail || []), ...(result.concepts || [])];
+                const all = [
+                  ...(result.primary || []),
+                  ...(result.secondary || []),
+                  ...(result.longTail || []),
+                  ...(result.concepts || []),
+                ];
                 copyToClipboard(all.join(", "));
               }}
               style={{
-                background: "rgba(96,165,250,0.1)", color: "#60a5fa", border: "1px solid rgba(96,165,250,0.2)",
-                padding: "6px 16px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 600
+                background: "rgba(96,165,250,0.1)",
+                color: "#60a5fa",
+                border: "1px solid rgba(96,165,250,0.2)",
+                padding: "6px 16px",
+                borderRadius: 6,
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
               }}
             >
-              Copy All ({([...(result.primary || []), ...(result.secondary || []), ...(result.longTail || []), ...(result.concepts || [])]).length})
+              Copy All (
+              {
+                [
+                  ...(result.primary || []),
+                  ...(result.secondary || []),
+                  ...(result.longTail || []),
+                  ...(result.concepts || []),
+                ].length
+              }
+              )
             </button>
           </div>
           {renderKeywordList("Primary Keywords", result.primary)}
