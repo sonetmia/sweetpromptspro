@@ -1,12 +1,12 @@
-# Sweet Prompts Pro
+# Sweet AI Metadata Lab
 
 > A focused AI microstock prompt studio for creating production-ready image prompts, metadata, variations, and creative stock workflows.
 
-Sweet Prompts Pro helps creators move from a short idea to a structured, commercially minded output. The application combines bulk prompt generation, image-to-prompt workflows, metadata generation, prompt improvement, creative variations, and stock-production intelligence in one workspace.
+Sweet AI Metadata Lab helps creators move from a short idea to a structured, commercially minded output. The application combines bulk prompt generation, image-to-prompt workflows, metadata generation, prompt improvement, creative variations, and stock-production intelligence in one workspace.
 
 ## Product overview
 
-Sweet Prompts Pro is designed for creators, stock contributors, designers, and production teams who need repeatable prompt workflows rather than one-off text generation. The interface keeps the first step simple while exposing deeper controls for users who need more specificity, volume, or marketplace-oriented output.
+Sweet AI Metadata Lab is designed for creators, stock contributors, designers, and production teams who need repeatable prompt workflows rather than one-off text generation. The interface keeps the first step simple while exposing deeper controls for users who need more specificity, volume, or marketplace-oriented output.
 
 The primary workflow is:
 
@@ -194,13 +194,13 @@ No license file is currently defined in this repository. Until a license is adde
 
 ## Maintainer
 
-Sweet Prompts Pro is developed by **Md Sonet Mia**.
+Sweet AI Metadata Lab is developed by **Md Sonet Mia**.
 
 For project questions or collaboration, open a GitHub issue or contact the maintainer through the project’s existing communication channel.
 
 ## References
 
-- [Sweet Prompts Pro repository](https://github.com/sonetmia/sweetpromptspro)
+- [Sweet AI Metadata Lab repository](https://github.com/sonetmia/sweetpromptspro)
 - [TanStack Start documentation](https://tanstack.com/start/latest)
 - [Vite documentation](https://vite.dev/guide/)
 - [Framer Motion documentation](https://motion.dev/docs/react)

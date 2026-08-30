@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import SweetPrompts from "@/components/SweetPrompts";
+import { App as SweetPrompts } from "@/components/SweetPrompts";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sweet Prompts — AI Microstock Prompt Studio" },
+      { title: "Sweet AI Metadata Lab by SONET" },
       {
         name: "description",
         content:
-          "Generate JPG, PNG, silhouette and bulk AI image prompts for Adobe Stock, Shutterstock, and more — 5 to 200 prompts at a time.",
+          "AI-powered prompt generation, metadata, keyword intelligence and stock-production workflows. Bring your own free/freemium AI provider key.",
       },
-      { property: "og:title", content: "Sweet Prompts — AI Microstock Prompt Studio" },
+      { property: "og:title", content: "Sweet AI Metadata Lab by SONET" },
       {
         property: "og:description",
-        content: "Bulk AI prompt generation for microstock JPG and PNG assets.",
+        content: "AI-powered prompt generation, metadata and stock-production workflows by SONET.",
       },
     ],
   }),
