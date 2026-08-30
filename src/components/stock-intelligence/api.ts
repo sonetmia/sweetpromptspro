@@ -1,109 +1,25 @@
-import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
+// ── Stock Intelligence AI services ─────────────────────────────────────────────
+// All calls go through the central AI engine (src/lib/ai) and are validated
+// against Zod schemas — no direct provider calls, no fragile JSON.parse.
 
-type Provider = "lovable" | "gemini" | "groq" | "mistral";
+import { generateStructured } from "@/lib/ai/engine";
+import {
+  opportunitySchema,
+  commercialAnalysisSchema,
+  searchSimulationSchema,
+  workflowSchema,
+  type OpportunityAnalysis,
+  type CommercialAnalysis,
+  type SearchSimulation,
+  type WorkflowAnalysis,
+} from "@/lib/ai/schemas/analysis";
+import { keywordSetSchema, type KeywordSet } from "@/lib/ai/schemas/keywords";
+import { metadataAnalysisSchema, type MetadataAnalysis } from "@/lib/ai/schemas/metadata";
+import { complianceSchema, type ComplianceResult } from "@/lib/ai/schemas/compliance";
+import { productionPackSchema, type ProductionPackResult } from "@/lib/ai/schemas/production";
 
-function loadApiCfg(): { provider: Provider; key: string; model: string } {
-  try {
-    const raw = localStorage.getItem("sp_api_cfg");
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { provider: "lovable", key: "", model: "" };
-}
-
-async function callGemini(system: string, user: string, key: string, model: string, maxTokens: number) {
-  const m = model || "gemini-2.0-flash";
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini API Error: ${res.status}`);
-  const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-async function callGroq(system: string, user: string, key: string, model: string, maxTokens: number) {
-  const m = model || "llama-3.3-70b-versatile";
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: m,
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    }),
-  });
-  if (!res.ok) throw new Error(`Groq API Error: ${res.status}`);
-  const json = await res.json();
-  return json.choices?.[0]?.message?.content || "";
-}
-
-async function callMistral(system: string, user: string, key: string, model: string, maxTokens: number) {
-  const m = model || "mistral-large-latest";
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: m,
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    }),
-  });
-  if (!res.ok) throw new Error(`Mistral API Error: ${res.status}`);
-  const json = await res.json();
-  return json.choices?.[0]?.message?.content || "";
-}
-
-async function callGeminiVision(system: string, user: string, imageDataUrl: string, key: string, model: string, maxTokens: number) {
-  const m = model || "gemini-2.0-flash";
-  const base64 = imageDataUrl.split(",")[1];
-  const mimeType = imageDataUrl.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{
-        role: "user",
-        parts: [
-          { text: user },
-          { inlineData: { mimeType, data: base64 } },
-        ],
-      }],
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini Vision Error: ${res.status}`);
-  const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-export async function callAI(system: string, user: string, maxTokens = 2000): Promise<string> {
-  const cfg = loadApiCfg();
-  if (cfg.provider === "gemini" && cfg.key) return callGemini(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "mistral" && cfg.key) return callMistral(system, user, cfg.key, cfg.model, maxTokens);
-
-  const r = await callAIFn({ data: { system, user, maxTokens } });
-  return r.text;
-}
-
-export async function callVisionAI(system: string, user: string, imageDataUrl: string, maxTokens = 2000): Promise<string> {
-  const cfg = loadApiCfg();
-  if (cfg.provider === "gemini" && cfg.key) return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
-
-  const r = await callAIVisionFn({ data: { system, user, imageDataUrl, maxTokens } });
-  return r.text;
-}
-
-export async function analyzeTopic(topic: string, count: number = 20) {
-  const system = `You are a professional Adobe Stock intelligence assistant. Analyze the given topic and generate a highly structured JSON response containing valuable stock photography/illustration opportunities.`;
+export async function analyzeTopic(topic: string, count = 20): Promise<OpportunityAnalysis> {
+  const system = `You are a professional stock-content intelligence assistant. Analyze the given topic and return a structured JSON response containing valuable stock photography/illustration opportunities. All estimates (saturation, demand) are AI estimates — keep them labelled as estimates, never as measured marketplace data.`;
   const user = `Topic: "${topic}"
 
 Generate ${count} specific microstock content opportunities for this topic.
@@ -127,100 +43,70 @@ Respond ONLY with a valid JSON object matching this schema:
       "metadataReadyConcept": "A short, clear title suitable for the final asset metadata"
     }
   ]
+}`;
+  return generateStructured(system, user, opportunitySchema, { maxTokens: 4000 });
 }
 
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callAI(system, user, 3000);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse analyzeTopic response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
-}
-
-export async function generateKeywords(topic: string, contentType: string) {
-  const system = `You are an expert Adobe Stock contributor specializing in keyword optimization.`;
+export async function generateKeywords(topic: string, contentType: string): Promise<KeywordSet> {
+  const system = `You are an expert microstock contributor specializing in keyword optimization. Use realistic stock terminology and avoid irrelevant keyword stuffing.`;
   const user = `Generate a comprehensive keyword list for a microstock asset.
 Topic/Description: "${topic}"
 Content Type: "${contentType}"
 
 Return ONLY valid JSON matching this schema:
 {
-  "primary": ["Top 10 most relevant, high-search-volume keywords"],
+  "primary": ["Top 10 most relevant keywords"],
   "secondary": ["10-15 descriptive, supporting keywords"],
   "longTail": ["5-10 specific multi-word phrases"],
   "concepts": ["5 abstract conceptual keywords (e.g., 'success', 'freedom')"]
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callAI(system, user, 1500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse generateKeywords response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, keywordSetSchema, { maxTokens: 1500 });
 }
 
-export async function analyzeImageMetadata(imageDataUrl: string) {
-  const system = `You are a professional microstock keyworder and metadata specialist. Analyze the image and provide optimal metadata for Adobe Stock.`;
+export async function analyzeImageMetadata(imageDataUrl: string): Promise<MetadataAnalysis> {
+  const system = `You are a professional microstock keyworder and metadata specialist. Analyze the image and provide optimal metadata for stock marketplaces. Titles must be descriptive and searchable; keywords must be relevant — no stuffing, no brand names.`;
   const user = `Analyze this image and return ONLY valid JSON matching this schema:
 {
   "title": "A strong, descriptive, and searchable title (7-15 words)",
   "keywords": ["Array of exactly 30 highly relevant keywords, ordered by importance"],
-  "category": "Suggested Adobe Stock category (e.g., 'Business', 'Nature', 'Lifestyle')",
+  "category": "Suggested stock category (e.g., 'Business', 'Nature', 'Lifestyle')",
   "contentType": "Photo, Vector, or Illustration",
   "aiGuidance": "Brief note if it looks AI generated and needs the 'Generative AI' tag",
   "observations": "Brief notes on potential property/people/text that might need releases or removal"
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callVisionAI(system, user, imageDataUrl, 1500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse analyzeImageMetadata response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, metadataAnalysisSchema, {
+    imageDataUrl,
+    maxTokens: 1500,
+  });
 }
 
-export async function generateWorkflowData(imageDataUrl: string) {
-  const system = `You are an expert AI image generation engineer and Adobe Stock metadata specialist.`;
+export async function generateWorkflowData(imageDataUrl: string): Promise<WorkflowAnalysis> {
+  const system = `You are an expert AI image generation engineer and microstock metadata specialist.`;
   const user = `Analyze this image and return ONLY valid JSON matching this schema:
 {
-  "prompt": "A detailed, high-quality reconstruction prompt that would generate a similar image in Midjourney/Stable Diffusion. Include style, lighting, composition, and subject details.",
+  "prompt": "A detailed, high-quality reconstruction prompt that would generate a similar image. Include style, lighting, composition, and subject details.",
   "metadata": {
     "title": "Descriptive stock title",
-    "keywords": ["Array of 25-30 comma-separated keywords"],
-    "category": "Adobe Stock Category"
+    "keywords": ["Array of 25-30 keywords"],
+    "category": "Stock category"
   },
   "qualityAnalysis": {
     "composition": "Analysis of the composition",
     "copySpace": "Analysis of copy space availability",
     "commercialUsefulness": "Why a buyer would want this",
-    "potentialProblems": "Any weird AI artifacts, text, or trademark issues detected"
+    "potentialProblems": "Any AI artifacts, text, or trademark issues detected"
   }
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callVisionAI(system, user, imageDataUrl, 2500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse generateWorkflowData response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, workflowSchema, { imageDataUrl, maxTokens: 2500 });
 }
 
-export async function checkCompliance(imageDataUrl: string) {
-  const system = `You are a strict Adobe Stock compliance inspector. Your job is to pre-check images for rejection reasons.`;
+export async function checkCompliance(imageDataUrl: string): Promise<ComplianceResult> {
+  const system = `You are a stock marketplace compliance inspector performing an AI-assisted pre-check. Flag potential rejection risks. This is a pre-check only — not legal advice and not a guarantee of acceptance or rejection.`;
   const user = `Examine this image for stock photography compliance. Look for:
-1. Visible logos, trademarks, or branded products (Apple, Nike, cars, etc.)
+1. Visible logos, trademarks, or branded products
 2. Recognizable people (need model releases)
 3. Identifiable private property/buildings (need property releases)
-4. Suspicious or garbled text (common in AI)
+4. Suspicious or garbled text (common in AI images)
 5. Visual defects or obvious AI generation artifacts (extra fingers, melting geometry, weird physics)
 6. Overall composition issues.
 
@@ -230,46 +116,34 @@ Return ONLY valid JSON matching this schema:
   "warnings": ["Array of specific observations/warnings. If none, leave empty."],
   "aiArtifacts": "Notes specifically about potential AI artifacts detected",
   "overallNote": "A short summary of the readiness of this image."
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callVisionAI(system, user, imageDataUrl, 1500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse checkCompliance response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, complianceSchema, { imageDataUrl, maxTokens: 1500 });
 }
 
-export async function analyzeCommercialValue(input: string) {
-  const system = `You are a microstock market analyst.`;
-  const user = `Evaluate the commercial suitability of this image concept/description for Adobe Stock.
+export async function analyzeCommercialValue(input: string): Promise<CommercialAnalysis> {
+  const system = `You are a microstock market analyst. All scores are AI estimates of commercial suitability — never present them as measured marketplace data.`;
+  const user = `Evaluate the commercial suitability of this image concept/description for stock marketplaces.
 Concept: "${input}"
 
 Return ONLY valid JSON matching this schema:
 {
-  "overallScore": "A number from 1 to 100 representing the Commercial Suitability Estimate",
+  "overallScore": "A number from 1 to 100 representing the Commercial Suitability Estimate (AI estimate)",
   "clarity": "Score 1-10 and brief reason",
   "versatility": "Score 1-10 and brief reason",
   "copySpace": "Score 1-10 and brief reason",
   "seasonalValue": "Notes on seasonal timing",
   "commercialApplicability": "Which industries/buyers would use this",
   "nicheUsefulness": "How useful is it within its specific niche"
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callAI(system, user, 1500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse analyzeCommercialValue response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, commercialAnalysisSchema, { maxTokens: 1500 });
 }
 
-export async function simulateSearch(topic: string, title: string, keywords: string) {
-  const system = `You are a stock search algorithm simulator. Analyze how well provided metadata matches a target topic.`;
+export async function simulateSearch(
+  topic: string,
+  title: string,
+  keywords: string,
+): Promise<SearchSimulation> {
+  const system = `You are a stock search relevance analyst. Estimate how well provided metadata matches a target search intent. Results are AI estimates, not real marketplace ranking data.`;
   const user = `Target Topic/Search Intent: "${topic}"
 Provided Title: "${title}"
 Provided Keywords: "${keywords}"
@@ -280,20 +154,15 @@ Return ONLY valid JSON matching this schema:
   "missingConcepts": ["List of important related concepts missing from the title/keywords"],
   "weakTerms": ["List of provided keywords that are irrelevant or too generic"],
   "suggestedImprovements": "A paragraph explaining how to improve the metadata for this search intent"
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callAI(system, user, 1500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse simulateSearch response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, searchSimulationSchema, { maxTokens: 1500 });
 }
 
-export async function generateProductionPack(topic: string, count: number) {
-  const system = `You are a professional AI stock asset producer.`;
+export async function generateProductionPack(
+  topic: string,
+  count: number,
+): Promise<ProductionPackResult> {
+  const system = `You are a professional AI stock asset producer. Avoid copyrighted references and trademarked subjects in all prompts and metadata.`;
   const user = `Topic: "${topic}"
 Generate ${count} complete production packs for AI image generation and microstock submission.
 
@@ -302,25 +171,19 @@ Return ONLY valid JSON matching this schema:
   "packs": [
     {
       "concept": "Short description of the idea",
-      "aiPrompt": "Highly detailed prompt for Midjourney/Stable Diffusion",
+      "aiPrompt": "Highly detailed AI image generation prompt",
       "negativePrompt": "Recommended negative prompt",
       "composition": "Recommended framing/composition",
       "aspectRatio": "Recommended aspect ratio (e.g., 16:9, 1:1)",
       "copySpace": "Where to leave space for text",
-      "title": "Final Adobe Stock title",
+      "title": "Final stock title",
       "keywords": ["Array of 30 keywords"],
-      "category": "Adobe Stock Category",
+      "category": "Stock category",
       "complianceNotes": "Things to watch out for during generation (e.g., 'ensure hands are correct')"
     }
   ]
-}
-Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`json.`;
-
-  const res = await callAI(system, user, count > 5 ? 4000 : 2500);
-  try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
-  } catch (e) {
-    console.error("Failed to parse generateProductionPack response:", res);
-    throw new Error("Failed to parse AI response as JSON.");
-  }
+}`;
+  return generateStructured(system, user, productionPackSchema, {
+    maxTokens: count > 5 ? 4000 : 2500,
+  });
 }

@@ -2,167 +2,14 @@ import { TypewriterEffect } from "./TypewriterEffect";
 import StockIntelligence from "./stock-intelligence/StockIntelligence";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
-import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
-
-// ── User API key config (Gemini / Groq) ───────────────────────────────────────
-type Provider = "lovable" | "gemini" | "groq" | "mistral";
-function loadApiCfg(): { provider: Provider; key: string; model: string } {
-  try {
-    const raw = localStorage.getItem("sp_api_cfg");
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { provider: "lovable", key: "", model: "" };
-}
-function saveApiCfg(c: { provider: Provider; key: string; model: string }) {
-  try {
-    localStorage.setItem("sp_api_cfg", JSON.stringify(c));
-  } catch {}
-}
-
-async function callGemini(
-  system: string,
-  user: string,
-  key: string,
-  model: string,
-  maxTokens: number,
-) {
-  const m = model || "gemini-2.0-flash";
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text: user }] }],
-        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
-      }),
-    },
-  );
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const j = await res.json();
-  return j.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-}
-
-async function callGroq(
-  system: string,
-  user: string,
-  key: string,
-  model: string,
-  maxTokens: number,
-) {
-  const m = model || "llama-3.3-70b-versatile";
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: m,
-      max_tokens: maxTokens,
-      temperature: 0.9,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`Groq ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const j = await res.json();
-  return j.choices?.[0]?.message?.content ?? "";
-}
-
-async function callMistral(
-  system: string,
-  user: string,
-  key: string,
-  model: string,
-  maxTokens: number,
-) {
-  const m = model || "mistral-large-latest";
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: m,
-      max_tokens: maxTokens,
-      temperature: 0.9,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`Mistral ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const j = await res.json();
-  return j.choices?.[0]?.message?.content ?? "";
-}
-
-async function callMistralVision(
-  system: string,
-  user: string,
-  imageDataUrl: string,
-  key: string,
-  model: string,
-  maxTokens: number,
-) {
-  const m = model || "pixtral-12b-2409";
-  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      model: m,
-      max_tokens: maxTokens,
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: system },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: user },
-            { type: "image_url", image_url: imageDataUrl },
-          ],
-        },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`Mistral vision ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const j = await res.json();
-  return j.choices?.[0]?.message?.content ?? "";
-}
-
-async function callGeminiVision(
-  system: string,
-  user: string,
-  imageDataUrl: string,
-  key: string,
-  model: string,
-  maxTokens: number,
-) {
-  const m = model || "gemini-2.0-flash";
-  const match = imageDataUrl.match(/^data:([^;]+);base64,(.*)$/);
-  if (!match) throw new Error("Invalid image data");
-  const [, mime, b64] = match;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: user }, { inline_data: { mime_type: mime, data: b64 } }],
-          },
-        ],
-        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
-      }),
-    },
-  );
-  if (!res.ok) throw new Error(`Gemini vision ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const j = await res.json();
-  return j.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
-}
+import { CreatorCard } from "@/components/FreeApiProviders";
+import { ProviderSettings, ProviderStatusBadge } from "@/components/ProviderSettings";
+import { generateText, analyzeImage } from "@/lib/ai/engine";
+import { aiErrorMessage } from "@/lib/ai/errors";
+import { generateBulk, COUNT_OPTIONS } from "@/lib/ai/bulk";
+import { fileToValidatedDataUrl } from "@/lib/ai/validation";
+import { generateStructured } from "@/lib/ai/engine";
+import { imageMetadataSchema } from "@/lib/ai/schemas/metadata";
 
 // ── Microstock risk validator ─────────────────────────────────────────────────
 const RISK_PATTERNS: { pattern: RegExp; category: string; reason: string }[] = [
@@ -310,22 +157,12 @@ const C = new Proxy({} as Theme, {
   },
 });
 
-const COUNT_OPTIONS = [5, 10, 20, 30, 50, 100, 200];
-
 const FONTS_LINK =
   "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap";
 
-// ── API ───────────────────────────────────────────────────────────────────────
+// ── AI calls — everything goes through the central engine (src/lib/ai) ────────
 async function callAI(system: string, user: string, maxTokens = 1400): Promise<string> {
-  const cfg = loadApiCfg();
-  if (cfg.provider === "gemini" && cfg.key)
-    return callGemini(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "groq" && cfg.key)
-    return callGroq(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "mistral" && cfg.key)
-    return callMistral(system, user, cfg.key, cfg.model, maxTokens);
-  const r = await callAIFn({ data: { system, user, maxTokens } });
-  return r.text;
+  return generateText(system, user, { maxTokens });
 }
 
 async function callVisionAI(
@@ -334,29 +171,10 @@ async function callVisionAI(
   imageDataUrl: string,
   maxTokens = 1200,
 ): Promise<string> {
-  const cfg = loadApiCfg();
-  if (cfg.provider === "mistral" && cfg.key)
-    return callMistralVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "gemini" && cfg.key)
-    return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
-  const r = await callAIVisionFn({ data: { system, user, imageDataUrl, maxTokens } });
-  return r.text;
-}
-
-function fileToDataUrl(f: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result));
-    r.onerror = reject;
-    r.readAsDataURL(f);
-  });
+  return analyzeImage(system, user, imageDataUrl, { maxTokens });
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function parseNumbered(text: string): string[] {
-  const lines = text.split("\n").filter((l) => /^\d+[\.\)]/.test(l.trim()));
-  return lines.length ? lines.map((l) => l.replace(/^\d+[\.\)]\s*/, "").trim()) : [text.trim()];
-}
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -399,26 +217,19 @@ function trySave(k: string, v: string) {
   } catch {}
 }
 
-// ── Generate prompts in batches (so 200 fits) ─────────────────────────────────
+// ── Bulk generation (batching, retry & partial results live in lib/ai/bulk) ───
 async function generateLargeBatch(
   system: string,
   user: string,
   totalCount: number,
   onProgress?: (p: number) => void,
+  signal?: AbortSignal,
 ): Promise<string[]> {
-  const BATCH = 20;
-  const all: string[] = [];
-  const batches = Math.ceil(totalCount / BATCH);
-  for (let i = 0; i < batches; i++) {
-    const need = Math.min(BATCH, totalCount - all.length);
-    const sys = system.replace(/\{\{COUNT\}\}/g, String(need));
-    const text = await callAI(sys, user, Math.min(4000, need * 120));
-    const parsed = parseNumbered(text);
-    all.push(...parsed.slice(0, need));
-    if (onProgress) onProgress(Math.round(((i + 1) / batches) * 100));
-    if (all.length >= totalCount) break;
+  const res = await generateBulk(system, user, totalCount, (p) => onProgress?.(p.percent), signal);
+  if (!res.items.length && res.errors.length) {
+    throw new Error(res.errors[0]);
   }
-  return all.slice(0, totalCount);
+  return res.items;
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -542,7 +353,9 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
   const off = loading || disabled;
   const [hover, setHover] = useState(false);
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       disabled={off}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -979,7 +792,9 @@ function Divider({ label }: { label: string }) {
 
 function Chip({ label, active, onClick }: any) {
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       style={{
         background: active ? C.orangeSoft : C.card2,
         border: `1px solid ${active ? C.orange + "66" : C.border}`,
@@ -1055,8 +870,8 @@ function makeGenerator(opts: {
           setProgress,
         );
         setResults(out);
-      } catch (e: any) {
-        setErr(e.message);
+      } catch (e) {
+        setErr(aiErrorMessage(e));
       } finally {
         setLoading(false);
       }
@@ -1184,8 +999,8 @@ const BulkGenerator = function () {
         all.push({ subject: subjects[i], prompts });
       }
       setResults(all);
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -1514,8 +1329,8 @@ function PromptImprover() {
       const b = text.match(/IMPROVED:\s*(.*)/s);
       setAnalysis(a?.[1]?.trim() || "");
       setResult(b?.[1]?.trim() || text.trim());
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -1606,8 +1421,8 @@ function PromptExpander() {
         prompt,
       );
       setResult(text.trim());
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -1665,8 +1480,8 @@ function PromptFixer() {
         issue.trim() ? `Prompt: ${prompt}\nIssue: ${issue}` : prompt,
       );
       setResult(text.trim());
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -1715,8 +1530,8 @@ function PromptTranslator() {
         prompt,
       );
       setResult(text.trim());
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -1793,8 +1608,8 @@ function Brainstormer() {
         setProgress,
       );
       setResults(out);
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e) {
+      setErr(aiErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -2072,6 +1887,57 @@ function PromptLibrary() {
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
+function ThemeSwitcher({
+  themeKey,
+  setThemeKey,
+}: {
+  themeKey: ThemeKey;
+  setThemeKey: (t: ThemeKey) => void;
+}) {
+  const options: { id: ThemeKey; label: string; hint: string }[] = [
+    { id: "sweet", label: "🍬 Sweet", hint: "Signature dark glass" },
+    { id: "simple", label: "☀️ Simple", hint: "Clean light workspace" },
+    { id: "futuristic", label: "🚀 Futuristic", hint: "Neon terminal" },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Theme"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+        gap: 10,
+      }}
+    >
+      {options.map((o) => {
+        const active = themeKey === o.id;
+        return (
+          <button
+            key={o.id}
+            role="radio"
+            aria-checked={active}
+            onClick={() => setThemeKey(o.id)}
+            style={{
+              background: active ? C.orangeSoft : C.card,
+              border: `2px solid ${active ? C.orange : C.border2}`,
+              borderRadius: 12,
+              padding: "12px 14px",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              textAlign: "left",
+            }}
+          >
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? C.orange : C.text }}>
+              {o.label}
+            </div>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{o.hint}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function Settings({
   themeKey,
   setThemeKey,
@@ -2081,129 +1947,14 @@ function Settings({
 }) {
   return (
     <div>
+      <Divider label="AI Provider" />
+      <ProviderSettings C={C as any} />
+
+      <Divider label="Appearance" />
+      <ThemeSwitcher themeKey={themeKey} setThemeKey={setThemeKey} />
+
       <Divider label="Creator" />
       <CreatorCard C={C as any} />
-
-      <Divider label="API Keys" />
-      <FreeApiProviders C={C as any} />
-    </div>
-  );
-}
-
-function ApiKeySettings() {
-  const [cfg, setCfg] = useState(() => loadApiCfg());
-  const [saved, setSaved] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testMsg, setTestMsg] = useState("");
-  function update(patch: Partial<typeof cfg>) {
-    const next = { ...cfg, ...patch };
-    setCfg(next);
-    saveApiCfg(next);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
-  }
-  async function test() {
-    setTesting(true);
-    setTestMsg("");
-    try {
-      const t = await callAI("Reply with: OK", "ping", 10);
-      setTestMsg("✓ Connected: " + (t.slice(0, 50) || "(empty)"));
-    } catch (e: any) {
-      setTestMsg("✗ " + e.message);
-    } finally {
-      setTesting(false);
-    }
-  }
-  const providers: { id: Provider; label: string; hint: string }[] = [
-    { id: "lovable", label: "Lovable AI (Default)", hint: "No key required, billed via workspace" },
-    { id: "gemini", label: "Google Gemini", hint: "Get key at aistudio.google.com" },
-    { id: "groq", label: "Groq AI", hint: "Get key at console.groq.com" },
-    { id: "mistral", label: "Mistral AI", hint: "Get key at console.mistral.ai (supports vision)" },
-  ];
-  const keyPlaceholder =
-    cfg.provider === "gemini" ? "AIza..." : cfg.provider === "groq" ? "gsk_..." : "...";
-  const modelPlaceholder =
-    cfg.provider === "gemini"
-      ? "gemini-2.0-flash"
-      : cfg.provider === "groq"
-        ? "llama-3.3-70b-versatile"
-        : cfg.provider === "mistral"
-          ? "mistral-large-latest / pixtral-12b-2409"
-          : "";
-  const providerName =
-    cfg.provider === "gemini"
-      ? "Gemini"
-      : cfg.provider === "groq"
-        ? "Groq"
-        : cfg.provider === "mistral"
-          ? "Mistral"
-          : "";
-  return (
-    <div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 10,
-          marginBottom: 14,
-        }}
-      >
-        {providers.map((p) => {
-          const active = cfg.provider === p.id;
-          return (
-            <button
-              key={p.id}
-              onClick={() => update({ provider: p.id })}
-              style={{
-                background: active ? C.orangeSoft : C.card2,
-                border: `2px solid ${active ? C.orange : C.border2}`,
-                borderRadius: 12,
-                padding: "12px 14px",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  color: active ? C.orange : C.text,
-                  marginBottom: 3,
-                }}
-              >
-                {p.label}
-              </div>
-              <div style={{ fontSize: 11, color: C.muted }}>{p.hint}</div>
-            </button>
-          );
-        })}
-      </div>
-      {cfg.provider !== "lovable" && (
-        <>
-          <Inp
-            label={`${providerName} API Key`}
-            value={cfg.key}
-            onChange={(v: string) => update({ key: v })}
-            placeholder={keyPlaceholder}
-            type="password"
-          />
-          <Inp
-            label="Model (optional)"
-            value={cfg.model}
-            onChange={(v: string) => update({ model: v })}
-            placeholder={modelPlaceholder}
-          />
-        </>
-      )}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Btn onClick={test} loading={testing} label="🔌 Test Connection" color={C.blue} />
-        {saved && <span style={{ fontSize: 12, color: C.green, fontWeight: 600 }}>✓ Saved</span>}
-        {testMsg && (
-          <span style={{ fontSize: 12, color: testMsg.startsWith("✓") ? C.green : C.red }}>
-            {testMsg}
-          </span>
-        )}
-      </div>
     </div>
   );
 }
@@ -2499,7 +2250,8 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             </h1>
 
             <p className="mt-7 max-w-xl text-base leading-7 text-white/62 sm:text-lg sm:leading-8">
-              Build clear, commercially minded prompts for image generation, metadata, and creative production—without the clutter.
+              Build clear, commercially minded prompts for image generation, metadata, and creative
+              production—without the clutter.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -2510,7 +2262,9 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 className="group inline-flex items-center justify-center gap-3 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-[#0a0a0f] shadow-[0_12px_40px_rgba(255,255,255,.12)] transition hover:bg-[#f4f1ff]"
               >
                 Open Image Studio
-                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                <span className="transition-transform duration-200 group-hover:translate-x-1">
+                  →
+                </span>
               </motion.button>
               <motion.button
                 whileHover={{ y: -2 }}
@@ -2524,53 +2278,78 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-white/45">
-              <span className="inline-flex items-center gap-2"><span className="text-[#f5841f]">✦</span> JPG-ready prompts</span>
-              <span className="inline-flex items-center gap-2"><span className="text-[#a78bfa]">✦</span> PNG asset concepts</span>
-              <span className="inline-flex items-center gap-2"><span className="text-[#60a5fa]">✦</span> Metadata workflows</span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#f5841f]">✦</span> JPG-ready prompts
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#a78bfa]">✦</span> PNG asset concepts
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#60a5fa]">✦</span> Metadata workflows
+              </span>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 28, scale: .97 }}
+            initial={{ opacity: 0, x: 28, scale: 0.97 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.08, ease: "easeOut" }}
             className="relative mx-auto w-full max-w-[520px] lg:mx-0"
           >
-            <div aria-hidden="true" className="absolute -inset-10 rounded-full bg-[#8b5cf6]/15 blur-3xl" />
+            <div
+              aria-hidden="true"
+              className="absolute -inset-10 rounded-full bg-[#8b5cf6]/15 blur-3xl"
+            />
             <div className="relative overflow-hidden rounded-[26px] border border-white/15 bg-[#10111a]/80 p-4 shadow-[0_30px_100px_rgba(0,0,0,.45)] backdrop-blur-2xl sm:p-5">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f5841f] to-[#a78bfa] text-sm font-bold text-white">SP</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f5841f] to-[#a78bfa] text-sm font-bold text-white">
+                    SP
+                  </span>
                   <div>
                     <div className="text-sm font-semibold text-white">Prompt workspace</div>
                     <div className="text-[11px] text-white/40">Production-ready output</div>
                   </div>
                 </div>
-                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Ready</span>
+                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                  Ready
+                </span>
               </div>
 
               <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.045] p-4 sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">Generated prompt</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">
+                    Generated prompt
+                  </span>
                   <span className="text-xs text-white/35">01 / 20</span>
                 </div>
                 <p className="text-sm leading-7 text-white/78 sm:text-[15px] sm:leading-8">
-                  Editorial lifestyle photograph of a sustainable urban workspace, warm natural light, refined neutral palette, clean commercial composition, subtle depth of field, generous negative space for copy, premium stock quality.
+                  Editorial lifestyle photograph of a sustainable urban workspace, warm natural
+                  light, refined neutral palette, clean commercial composition, subtle depth of
+                  field, generous negative space for copy, premium stock quality.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {['Editorial', 'Commercial', 'Natural light'].map((tag) => (
-                    <span key={tag} className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-medium text-white/48">{tag}</span>
+                  {["Editorial", "Commercial", "Natural light"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-medium text-white/48"
+                    >
+                      {tag}
+                    </span>
                   ))}
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {[
-                  ['Clarity', '98%'],
-                  ['Specificity', '94%'],
-                  ['Ready', 'Yes'],
+                  ["Clarity", "98%"],
+                  ["Specificity", "94%"],
+                  ["Ready", "Yes"],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border border-white/8 bg-white/[.035] px-3 py-3">
+                  <div
+                    key={label}
+                    className="rounded-xl border border-white/8 bg-white/[.035] px-3 py-3"
+                  >
                     <div className="text-[10px] text-white/35">{label}</div>
                     <div className="mt-1 text-sm font-semibold text-white/80">{value}</div>
                   </div>
@@ -2578,8 +2357,15 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                <span className="text-[11px] text-white/35">Generated in SweetPromptsPro</span>
-                <button onClick={() => setPage("imgstudio")} className="rounded-lg border border-white/15 bg-white/[.07] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[.13]">Open studio →</button>
+                <span className="text-[11px] text-white/35">
+                  Generated in Sweet AI Metadata Lab
+                </span>
+                <button
+                  onClick={() => setPage("imgstudio")}
+                  className="rounded-lg border border-white/15 bg-white/[.07] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[.13]"
+                >
+                  Open studio →
+                </button>
               </div>
             </div>
           </motion.div>
@@ -2677,13 +2463,23 @@ function ImageToPrompts() {
     const imgs = files.filter((f) => f.type.startsWith("image/"));
     const newItems: ImgItem[] = [];
     for (const f of imgs) {
-      const dataUrl = await fileToDataUrl(f);
-      newItems.push({
-        id: Math.random().toString(36).slice(2),
-        name: f.name,
-        dataUrl,
-        status: "idle",
-      });
+      try {
+        const dataUrl = await fileToValidatedDataUrl(f);
+        newItems.push({
+          id: Math.random().toString(36).slice(2),
+          name: f.name,
+          dataUrl,
+          status: "idle",
+        });
+      } catch (e) {
+        newItems.push({
+          id: Math.random().toString(36).slice(2),
+          name: f.name,
+          dataUrl: "",
+          status: "error",
+          error: aiErrorMessage(e),
+        });
+      }
     }
     setItems((prev) => [...prev, ...newItems]);
   }
@@ -2711,8 +2507,8 @@ function ImageToPrompts() {
           500,
         );
         next[i] = { ...next[i], status: "done", prompt: text.trim() };
-      } catch (e: any) {
-        next[i] = { ...next[i], status: "error", error: e.message };
+      } catch (e) {
+        next[i] = { ...next[i], status: "error", error: aiErrorMessage(e) };
       }
       done++;
       setItems([...next]);
@@ -2893,14 +2689,25 @@ function ImageToMetadata() {
           status: "idle",
         });
       } else {
-        const dataUrl = await fileToDataUrl(f);
-        next.push({
-          id: Math.random().toString(36).slice(2),
-          name: f.name,
-          dataUrl,
-          kind,
-          status: "idle",
-        });
+        try {
+          const dataUrl = await fileToValidatedDataUrl(f);
+          next.push({
+            id: Math.random().toString(36).slice(2),
+            name: f.name,
+            dataUrl,
+            kind,
+            status: "idle",
+          });
+        } catch (e) {
+          next.push({
+            id: Math.random().toString(36).slice(2),
+            name: f.name,
+            dataUrl: "",
+            kind,
+            status: "error",
+            error: aiErrorMessage(e),
+          });
+        }
       }
     }
     setItems((prev) => [...prev, ...next]);
@@ -2942,30 +2749,24 @@ function ImageToMetadata() {
       next[i] = { ...it, status: "loading" };
       setItems([...next]);
       try {
-        const raw = await callVisionAI(
+        const parsed = await generateStructured(
           sys,
           "Analyze this image and return the JSON metadata.",
-          it.dataUrl,
-          1200,
+          imageMetadataSchema,
+          { imageDataUrl: it.dataUrl, maxTokens: 1200 },
         );
-        const clean = raw.replace(/```json|```/g, "").trim();
-        const jsonMatch = clean.match(/\{[\s\S]*\}/);
-        const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
-        const kws: string[] = Array.isArray(parsed.keywords)
-          ? parsed.keywords.map((k: any) => String(k).trim()).filter(Boolean)
-          : [];
         next[i] = {
           ...next[i],
           status: "done",
           meta: {
-            title: String(parsed.title || "").slice(0, titleTarget),
-            description: String(parsed.description || ""),
-            category: String(parsed.category || "Graphic Resources"),
-            keywords: kws.slice(0, kwTarget),
+            title: parsed.title.slice(0, titleTarget),
+            description: parsed.description,
+            category: parsed.category,
+            keywords: parsed.keywords.slice(0, kwTarget),
           },
         };
-      } catch (e: any) {
-        next[i] = { ...next[i], status: "error", error: e.message };
+      } catch (e) {
+        next[i] = { ...next[i], status: "error", error: aiErrorMessage(e) };
       }
       setItems([...next]);
       setProgress(Math.round(((i + 1) / next.length) * 100));
@@ -3030,7 +2831,7 @@ function ImageToMetadata() {
             >
               {on ? "✓ " : ""}
               {m.label} <span style={{ opacity: 0.6, fontSize: 10 }}>·{m.kwMax}kw</span>
-      </button>
+            </button>
           );
         })}
       </div>
@@ -3244,9 +3045,21 @@ function Navbar({ page, setPage }: any) {
             letterSpacing: "-.4px",
           }}
         >
-          Sweet Prompts Pro
+          Sweet AI Metadata Lab
+        </span>
+        <span
+          style={{
+            fontSize: 10,
+            color: "rgba(255,255,255,.45)",
+            fontWeight: 600,
+            letterSpacing: ".08em",
+            textTransform: "uppercase",
+          }}
+        >
+          by SONET
         </span>
       </button>
+      <ProviderStatusBadge />
       <div
         style={{
           display: "flex",
@@ -3257,8 +3070,7 @@ function Navbar({ page, setPage }: any) {
           border: "1px solid rgba(255,255,255,0.09)",
           borderRadius: 999,
           backdropFilter: "blur(12px)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px -8px rgba(245,132,31,0.25)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px -8px rgba(245,132,31,0.25)",
         }}
       >
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
@@ -3305,8 +3117,7 @@ function NavSep() {
       style={{
         width: 1,
         height: 18,
-        background:
-          "linear-gradient(180deg, transparent, rgba(255,255,255,0.16), transparent)",
+        background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.16), transparent)",
         margin: "0 2px",
         flex: "0 0 auto",
       }}
@@ -3316,7 +3127,9 @@ function NavSep() {
 
 function NavBtn({ label, active, onClick }: any) {
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       className={`whitespace-nowrap px-[15px] py-[7px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 border ${active ? "bg-white/10 text-white font-semibold border-white/20 shadow-[0_0_18px_-4px_rgba(245,132,31,0.55)]" : "bg-white/[0.02] text-white/75 font-medium border-white/10 hover:bg-white/[0.07] hover:text-white hover:border-white/25 hover:shadow-[0_0_16px_-4px_rgba(245,132,31,0.45)]"}`}
     >
       {label}
@@ -3324,12 +3137,13 @@ function NavBtn({ label, active, onClick }: any) {
   );
 }
 
-
 function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   return (
     <div style={{ position: "relative" }}>
-      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${(open || active) ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1 whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${open || active ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
       >
         {label}{" "}
         <span
@@ -3623,7 +3437,7 @@ const PAGE_META: Record<string, { title: string | null; desc?: string }> = {
   brainstorm: { title: "Brainstormer", desc: "Generate creative directions" },
   silhouette: { title: "Silhouette Finder", desc: "Clean isolated silhouette prompts" },
   imgstudio: { title: null },
-  settings: { title: "Settings", desc: "Theme and preferences" },
+  settings: { title: "Settings", desc: "AI provider, theme and preferences" },
 };
 
 function PageContent({ page, themeKey, setThemeKey }: any) {
@@ -3773,7 +3587,7 @@ export default function App() {
                         textTransform: "uppercase",
                       }}
                     >
-                      Sweet Prompts Pro
+                      Sweet AI Metadata Lab
                     </span>
                   </div>
                   <h1

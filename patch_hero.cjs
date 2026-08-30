@@ -1,7 +1,7 @@
-const fs = require('fs');
+const fs = require("fs");
 
-const file = 'src/components/SweetPrompts.tsx';
-let content = fs.readFileSync(file, 'utf8');
+const file = "src/components/SweetPrompts.tsx";
+let content = fs.readFileSync(file, "utf8");
 
 const replacement = `<span className="block" style={{ height: "1.2em" }}><TypewriterEffect words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]} /></span>`;
 
@@ -10,7 +10,7 @@ const startRegex = /<span className="block" style=\{\{ height: "1\.2em" \}\}>.*?
 
 content = content.replace(
   /<span className="block" style=\{\{ height: "1\.2em" \}\}>.*?<\/span>\s*\/\* <ShinyText[\s\S]*?spread=\{100\} \/> \*\/\s*\/>/s,
-  replacement
+  replacement,
 );
 
-fs.writeFileSync(file, content, 'utf8');
+fs.writeFileSync(file, content, "utf8");

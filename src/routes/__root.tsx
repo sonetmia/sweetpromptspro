@@ -72,14 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Sweet Prompts Pro" },
+      { title: "Sweet AI Metadata Lab by SONET" },
       {
         name: "description",
         content:
           "AI-powered microstock workflow platform for generating PNGs, prompts, metadata, variations, and bulk creative stock content faster.",
       },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Sweet Prompts Pro" },
+      { property: "og:title", content: "Sweet AI Metadata Lab by SONET" },
       {
         property: "og:description",
         content:
@@ -88,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Sweet Prompts Pro" },
+      { name: "twitter:title", content: "Sweet AI Metadata Lab by SONET" },
       {
         name: "twitter:description",
         content:
