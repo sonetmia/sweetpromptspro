@@ -542,7 +542,9 @@ function Btn({ onClick, loading, disabled, label, color }: any) {
   const off = loading || disabled;
   const [hover, setHover] = useState(false);
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       disabled={off}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -979,7 +981,9 @@ function Divider({ label }: { label: string }) {
 
 function Chip({ label, active, onClick }: any) {
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       style={{
         background: active ? C.orangeSoft : C.card2,
         border: `1px solid ${active ? C.orange + "66" : C.border}`,
@@ -2492,14 +2496,17 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
               Turn raw ideas into
               <span
                 className="block bg-gradient-to-r from-white via-[#d9d2ff] to-[#a78bfa] bg-clip-text text-transparent"
-                style={{ paddingBottom: ".08em" }}
+                style={{ paddingBottom: ".08em", height: "1.2em" }}
               >
-                prompts that perform.
+                <TypewriterEffect
+                  words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]}
+                />
               </span>
             </h1>
 
             <p className="mt-7 max-w-xl text-base leading-7 text-white/62 sm:text-lg sm:leading-8">
-              Build clear, commercially minded prompts for image generation, metadata, and creative production—without the clutter.
+              Build clear, commercially minded prompts for image generation, metadata, and creative
+              production—without the clutter.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -2510,7 +2517,9 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 className="group inline-flex items-center justify-center gap-3 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-[#0a0a0f] shadow-[0_12px_40px_rgba(255,255,255,.12)] transition hover:bg-[#f4f1ff]"
               >
                 Open Image Studio
-                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                <span className="transition-transform duration-200 group-hover:translate-x-1">
+                  →
+                </span>
               </motion.button>
               <motion.button
                 whileHover={{ y: -2 }}
@@ -2524,53 +2533,78 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-white/45">
-              <span className="inline-flex items-center gap-2"><span className="text-[#f5841f]">✦</span> JPG-ready prompts</span>
-              <span className="inline-flex items-center gap-2"><span className="text-[#a78bfa]">✦</span> PNG asset concepts</span>
-              <span className="inline-flex items-center gap-2"><span className="text-[#60a5fa]">✦</span> Metadata workflows</span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#f5841f]">✦</span> JPG-ready prompts
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#a78bfa]">✦</span> PNG asset concepts
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-[#60a5fa]">✦</span> Metadata workflows
+              </span>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 28, scale: .97 }}
+            initial={{ opacity: 0, x: 28, scale: 0.97 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.08, ease: "easeOut" }}
             className="relative mx-auto w-full max-w-[520px] lg:mx-0"
           >
-            <div aria-hidden="true" className="absolute -inset-10 rounded-full bg-[#8b5cf6]/15 blur-3xl" />
+            <div
+              aria-hidden="true"
+              className="absolute -inset-10 rounded-full bg-[#8b5cf6]/15 blur-3xl"
+            />
             <div className="relative overflow-hidden rounded-[26px] border border-white/15 bg-[#10111a]/80 p-4 shadow-[0_30px_100px_rgba(0,0,0,.45)] backdrop-blur-2xl sm:p-5">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f5841f] to-[#a78bfa] text-sm font-bold text-white">SP</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f5841f] to-[#a78bfa] text-sm font-bold text-white">
+                    SP
+                  </span>
                   <div>
                     <div className="text-sm font-semibold text-white">Prompt workspace</div>
                     <div className="text-[11px] text-white/40">Production-ready output</div>
                   </div>
                 </div>
-                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Ready</span>
+                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                  Ready
+                </span>
               </div>
 
               <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.045] p-4 sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">Generated prompt</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">
+                    Generated prompt
+                  </span>
                   <span className="text-xs text-white/35">01 / 20</span>
                 </div>
                 <p className="text-sm leading-7 text-white/78 sm:text-[15px] sm:leading-8">
-                  Editorial lifestyle photograph of a sustainable urban workspace, warm natural light, refined neutral palette, clean commercial composition, subtle depth of field, generous negative space for copy, premium stock quality.
+                  Editorial lifestyle photograph of a sustainable urban workspace, warm natural
+                  light, refined neutral palette, clean commercial composition, subtle depth of
+                  field, generous negative space for copy, premium stock quality.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {['Editorial', 'Commercial', 'Natural light'].map((tag) => (
-                    <span key={tag} className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-medium text-white/48">{tag}</span>
+                  {["Editorial", "Commercial", "Natural light"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-medium text-white/48"
+                    >
+                      {tag}
+                    </span>
                   ))}
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {[
-                  ['Clarity', '98%'],
-                  ['Specificity', '94%'],
-                  ['Ready', 'Yes'],
+                  ["Clarity", "98%"],
+                  ["Specificity", "94%"],
+                  ["Ready", "Yes"],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border border-white/8 bg-white/[.035] px-3 py-3">
+                  <div
+                    key={label}
+                    className="rounded-xl border border-white/8 bg-white/[.035] px-3 py-3"
+                  >
                     <div className="text-[10px] text-white/35">{label}</div>
                     <div className="mt-1 text-sm font-semibold text-white/80">{value}</div>
                   </div>
@@ -2579,7 +2613,12 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
 
               <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
                 <span className="text-[11px] text-white/35">Generated in SweetPromptsPro</span>
-                <button onClick={() => setPage("imgstudio")} className="rounded-lg border border-white/15 bg-white/[.07] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[.13]">Open studio →</button>
+                <button
+                  onClick={() => setPage("imgstudio")}
+                  className="rounded-lg border border-white/15 bg-white/[.07] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[.13]"
+                >
+                  Open studio →
+                </button>
               </div>
             </div>
           </motion.div>
@@ -3030,7 +3069,7 @@ function ImageToMetadata() {
             >
               {on ? "✓ " : ""}
               {m.label} <span style={{ opacity: 0.6, fontSize: 10 }}>·{m.kwMax}kw</span>
-      </button>
+            </button>
           );
         })}
       </div>
@@ -3257,8 +3296,7 @@ function Navbar({ page, setPage }: any) {
           border: "1px solid rgba(255,255,255,0.09)",
           borderRadius: 999,
           backdropFilter: "blur(12px)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px -8px rgba(245,132,31,0.25)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 22px -8px rgba(245,132,31,0.25)",
         }}
       >
         <NavBtn label="Home" active={page === "home"} onClick={() => setPage("home")} />
@@ -3305,8 +3343,7 @@ function NavSep() {
       style={{
         width: 1,
         height: 18,
-        background:
-          "linear-gradient(180deg, transparent, rgba(255,255,255,0.16), transparent)",
+        background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.16), transparent)",
         margin: "0 2px",
         flex: "0 0 auto",
       }}
@@ -3316,7 +3353,9 @@ function NavSep() {
 
 function NavBtn({ label, active, onClick }: any) {
   return (
-    <motion.button whileTap={{ scale: 0.95 }} onClick={onClick}
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
       className={`whitespace-nowrap px-[15px] py-[7px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 border ${active ? "bg-white/10 text-white font-semibold border-white/20 shadow-[0_0_18px_-4px_rgba(245,132,31,0.55)]" : "bg-white/[0.02] text-white/75 font-medium border-white/10 hover:bg-white/[0.07] hover:text-white hover:border-white/25 hover:shadow-[0_0_16px_-4px_rgba(245,132,31,0.45)]"}`}
     >
       {label}
@@ -3324,12 +3363,13 @@ function NavBtn({ label, active, onClick }: any) {
   );
 }
 
-
 function Dropdown({ label, open, setOpen, items, setPage, active }: any) {
   return (
     <div style={{ position: "relative" }}>
-      <motion.button whileTap={{ scale: 0.95 }} onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${(open || active) ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1 whitespace-nowrap px-[14px] py-[6px] text-[13.5px] rounded-full font-inherit cursor-pointer transition-all duration-200 ${open || active ? "bg-white/10 text-white font-semibold shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-transparent text-white/75 font-medium hover:bg-white/5 hover:text-white"}`}
       >
         {label}{" "}
         <span
