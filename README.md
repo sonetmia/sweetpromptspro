@@ -16,23 +16,23 @@ Describe an idea → choose a tool → generate structured output → review →
 
 ## Core capabilities
 
-| Area | Capability | Purpose |
-|---|---|---|
-| Prompt generation | Bulk Image Prompt Generator | Create multiple microstock-oriented prompts for a subject or concept. |
-| Prompt generation | Idea Generator | Turn an early concept into several AI-ready creative directions. |
-| Prompt generation | JPG Creator | Produce photo-oriented prompts with commercial composition and stock-use considerations. |
-| Prompt generation | PNG Creator | Generate isolated transparent-asset concepts for design workflows. |
-| Prompt refinement | Prompt Improver | Analyze an existing prompt and return a clearer, more detailed version. |
-| Prompt refinement | Prompt Variations | Create multiple creative angles from one base prompt. |
-| Prompt refinement | Prompt Expander | Turn a short idea into a richer, more descriptive prompt. |
-| Prompt refinement | Prompt Fixer | Detect common prompt problems and provide a repaired version. |
-| Prompt refinement | Prompt Translator | Translate prompt content into another language while retaining intent. |
-| Creative planning | Brainstormer | Generate creative directions before committing to a production prompt. |
-| Asset workflows | Image Studio | Convert uploaded images into prompts or marketplace-ready metadata. |
-| Stock intelligence | Production Pack | Build a broader stock-production package from a single topic. |
-| Stock intelligence | Opportunity Finder | Explore topic opportunities, search terms, and related concepts. |
-| Stock intelligence | Keyword Intelligence | Generate primary, secondary, and long-tail keyword suggestions. |
-| Safety and quality | Microstock risk validator | Flag possible brands, copyrighted characters, landmarks, identifiable people, and other risk signals. |
+| Area               | Capability                  | Purpose                                                                                               |
+| ------------------ | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Prompt generation  | Bulk Image Prompt Generator | Create multiple microstock-oriented prompts for a subject or concept.                                 |
+| Prompt generation  | Idea Generator              | Turn an early concept into several AI-ready creative directions.                                      |
+| Prompt generation  | JPG Creator                 | Produce photo-oriented prompts with commercial composition and stock-use considerations.              |
+| Prompt generation  | PNG Creator                 | Generate isolated transparent-asset concepts for design workflows.                                    |
+| Prompt refinement  | Prompt Improver             | Analyze an existing prompt and return a clearer, more detailed version.                               |
+| Prompt refinement  | Prompt Variations           | Create multiple creative angles from one base prompt.                                                 |
+| Prompt refinement  | Prompt Expander             | Turn a short idea into a richer, more descriptive prompt.                                             |
+| Prompt refinement  | Prompt Fixer                | Detect common prompt problems and provide a repaired version.                                         |
+| Prompt refinement  | Prompt Translator           | Translate prompt content into another language while retaining intent.                                |
+| Creative planning  | Brainstormer                | Generate creative directions before committing to a production prompt.                                |
+| Asset workflows    | Image Studio                | Convert uploaded images into prompts or marketplace-ready metadata.                                   |
+| Stock intelligence | Production Pack             | Build a broader stock-production package from a single topic.                                         |
+| Stock intelligence | Opportunity Finder          | Explore topic opportunities, search terms, and related concepts.                                      |
+| Stock intelligence | Keyword Intelligence        | Generate primary, secondary, and long-tail keyword suggestions.                                       |
+| Safety and quality | Microstock risk validator   | Flag possible brands, copyrighted characters, landmarks, identifiable people, and other risk signals. |
 
 ## Experience principles
 
@@ -45,18 +45,18 @@ The product follows four interface principles:
 
 ## Technology stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19 with TypeScript |
-| Application framework | TanStack Start and TanStack Router |
-| Build tool | Vite |
-| Styling | Tailwind CSS with project-level CSS variables |
-| Animation | Framer Motion |
-| UI primitives | Radix UI and Lucide React |
-| Data and server state | TanStack React Query |
-| AI gateway | Lovable AI Gateway using Gemini 2.5 Flash by default |
+| Layer                 | Technology                                                                |
+| --------------------- | ------------------------------------------------------------------------- |
+| Frontend              | React 19 with TypeScript                                                  |
+| Application framework | TanStack Start and TanStack Router                                        |
+| Build tool            | Vite                                                                      |
+| Styling               | Tailwind CSS with project-level CSS variables                             |
+| Animation             | Framer Motion                                                             |
+| UI primitives         | Radix UI and Lucide React                                                 |
+| Data and server state | TanStack React Query                                                      |
+| AI gateway            | Lovable AI Gateway using Gemini 2.5 Flash by default                      |
 | Alternative providers | Gemini, Groq, and Mistral can be configured from the application settings |
-| Deployment target | Cloudflare-compatible TanStack Start output |
+| Deployment target     | Cloudflare-compatible TanStack Start output                               |
 
 ## Requirements
 
@@ -99,14 +99,14 @@ The application is then available at the local URL printed by Vite. Do not commi
 
 ## Available scripts
 
-| Command | Description |
-|---|---|
-| `bun run dev` | Start the Vite development server. |
-| `bun run build` | Create a production build for the TanStack Start application. |
-| `bun run build:dev` | Create a development-mode production build. |
-| `bun run preview` | Preview the generated production build locally. |
-| `bun run lint` | Run the repository ESLint and Prettier checks. |
-| `bun run format` | Format project files with Prettier. |
+| Command             | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| `bun run dev`       | Start the Vite development server.                            |
+| `bun run build`     | Create a production build for the TanStack Start application. |
+| `bun run build:dev` | Create a development-mode production build.                   |
+| `bun run preview`   | Preview the generated production build locally.               |
+| `bun run lint`      | Run the repository ESLint and Prettier checks.                |
+| `bun run format`    | Format project files with Prettier.                           |
 
 Equivalent commands can be used with another package manager when required, for example `pnpm run dev` or `npm run dev` after installing dependencies.
 
@@ -116,12 +116,12 @@ The application uses the Lovable AI Gateway by default. The server functions in 
 
 Users can also configure supported personal providers from the application settings. The current provider options include:
 
-| Provider | Typical use | Configuration location |
-|---|---|---|
+| Provider        | Typical use                        | Configuration location                       |
+| --------------- | ---------------------------------- | -------------------------------------------- |
 | Lovable Gateway | Default text and vision generation | Server environment through `LOVABLE_API_KEY` |
-| Gemini | Direct text and vision generation | Application settings |
-| Groq | Direct text generation | Application settings |
-| Mistral | Direct text and vision generation | Application settings |
+| Gemini          | Direct text and vision generation  | Application settings                         |
+| Groq            | Direct text generation             | Application settings                         |
+| Mistral         | Direct text and vision generation  | Application settings                         |
 
 Personal provider configuration is stored locally in the browser. Treat personal API keys as sensitive credentials, use a restricted key where the provider supports it, and clear the setting before using a shared device.
 
@@ -149,16 +149,16 @@ src/
 
 The main application is a single workspace with internal page state for the available tools. The principal destinations are:
 
-| Destination | Description |
-|---|---|
-| Home | Product landing experience and tool entry points. |
-| Image Studio | Unified image-to-prompt and image-to-metadata workflow. |
-| Bulk Generator | High-volume prompt generation for multiple subjects. |
-| JPG Creator | Photo-oriented microstock prompt generation. |
-| PNG Creator | Transparent PNG asset prompt generation. |
-| Prompt Library | Curated prompt collections and reusable examples. |
+| Destination        | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| Home               | Product landing experience and tool entry points.         |
+| Image Studio       | Unified image-to-prompt and image-to-metadata workflow.   |
+| Bulk Generator     | High-volume prompt generation for multiple subjects.      |
+| JPG Creator        | Photo-oriented microstock prompt generation.              |
+| PNG Creator        | Transparent PNG asset prompt generation.                  |
+| Prompt Library     | Curated prompt collections and reusable examples.         |
 | Stock Intelligence | Production, metadata, keyword, and opportunity workflows. |
-| Settings | Theme and provider preferences. |
+| Settings           | Theme and provider preferences.                           |
 
 ## Quality and safety behavior
 

@@ -2487,27 +2487,9 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
             transition={{ duration: 0.65, ease: "easeOut" }}
             className="max-w-3xl"
           >
-            <div className="mb-7 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[.06] px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-white/70 backdrop-blur-md">
-              <span className="h-2 w-2 rounded-full bg-[#f5841f] shadow-[0_0_14px_rgba(245,132,31,.85)]" />
-              AI microstock prompt studio
-            </div>
-
             <h1 className="max-w-3xl text-[clamp(3.4rem,7vw,7.2rem)] font-semibold leading-[.93] tracking-[-.07em] text-white">
-              Turn raw ideas into
-              <span
-                className="block bg-gradient-to-r from-white via-[#d9d2ff] to-[#a78bfa] bg-clip-text text-transparent"
-                style={{ paddingBottom: ".08em", height: "1.2em" }}
-              >
-                <TypewriterEffect
-                  words={["Sweet Prompts Pro", "Microstock Journey With Sonet", "Sweet Prompts"]}
-                />
-              </span>
+              Your Creative Production Lab
             </h1>
-
-            <p className="mt-7 max-w-xl text-base leading-7 text-white/62 sm:text-lg sm:leading-8">
-              Build clear, commercially minded prompts for image generation, metadata, and creative
-              production—without the clutter.
-            </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <motion.button
@@ -2517,9 +2499,6 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 className="group inline-flex items-center justify-center gap-3 rounded-xl bg-white px-5 py-3.5 text-sm font-bold text-[#0a0a0f] shadow-[0_12px_40px_rgba(255,255,255,.12)] transition hover:bg-[#f4f1ff]"
               >
                 Open Image Studio
-                <span className="transition-transform duration-200 group-hover:translate-x-1">
-                  →
-                </span>
               </motion.button>
               <motion.button
                 whileHover={{ y: -2 }}
@@ -2527,21 +2506,24 @@ function HeroSection({ setPage }: { setPage: (p: string) => void }) {
                 onClick={() => setPage("bulk")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/18 bg-white/[.05] px-5 py-3.5 text-sm font-semibold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[.1]"
               >
-                Explore prompt tools
-                <span className="text-white/45">↗</span>
+                Explore All Tools
               </motion.button>
-            </div>
-
-            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs font-medium text-white/45">
-              <span className="inline-flex items-center gap-2">
-                <span className="text-[#f5841f]">✦</span> JPG-ready prompts
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="text-[#a78bfa]">✦</span> PNG asset concepts
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="text-[#60a5fa]">✦</span> Metadata workflows
-              </span>
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setPage("png")}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/18 bg-white/[.05] px-5 py-3.5 text-sm font-semibold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[.1]"
+              >
+                PNG Prompts
+              </motion.button>
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setPage("intelligence")}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/18 bg-white/[.05] px-5 py-3.5 text-sm font-semibold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[.1]"
+              >
+                Stock Intelligence
+              </motion.button>
             </div>
           </motion.div>
 
