@@ -10,30 +10,48 @@ function loadApiCfg(): { provider: Provider; key: string; model: string } {
   return { provider: "lovable", key: "", model: "" };
 }
 
-async function callGemini(system: string, user: string, key: string, model: string, maxTokens: number) {
+async function callGemini(
+  system: string,
+  user: string,
+  key: string,
+  model: string,
+  maxTokens: number,
+) {
   const m = model || "gemini-2.0-flash";
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
-    }),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: "user", parts: [{ text: user }] }],
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+      }),
+    },
+  );
   if (!res.ok) throw new Error(`Gemini API Error: ${res.status}`);
   const json = await res.json();
   return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
-async function callGroq(system: string, user: string, key: string, model: string, maxTokens: number) {
+async function callGroq(
+  system: string,
+  user: string,
+  key: string,
+  model: string,
+  maxTokens: number,
+) {
   const m = model || "llama-3.3-70b-versatile";
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: m,
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
       max_tokens: maxTokens,
       temperature: 0.7,
     }),
@@ -43,14 +61,23 @@ async function callGroq(system: string, user: string, key: string, model: string
   return json.choices?.[0]?.message?.content || "";
 }
 
-async function callMistral(system: string, user: string, key: string, model: string, maxTokens: number) {
+async function callMistral(
+  system: string,
+  user: string,
+  key: string,
+  model: string,
+  maxTokens: number,
+) {
   const m = model || "mistral-large-latest";
   const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: m,
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
       max_tokens: maxTokens,
       temperature: 0.7,
     }),
@@ -60,25 +87,34 @@ async function callMistral(system: string, user: string, key: string, model: str
   return json.choices?.[0]?.message?.content || "";
 }
 
-async function callGeminiVision(system: string, user: string, imageDataUrl: string, key: string, model: string, maxTokens: number) {
+async function callGeminiVision(
+  system: string,
+  user: string,
+  imageDataUrl: string,
+  key: string,
+  model: string,
+  maxTokens: number,
+) {
   const m = model || "gemini-2.0-flash";
   const base64 = imageDataUrl.split(",")[1];
   const mimeType = imageDataUrl.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{
-        role: "user",
-        parts: [
-          { text: user },
-          { inlineData: { mimeType, data: base64 } },
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: user }, { inlineData: { mimeType, data: base64 } }],
+          },
         ],
-      }],
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
-    }),
-  });
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
+      }),
+    },
+  );
   if (!res.ok) throw new Error(`Gemini Vision Error: ${res.status}`);
   const json = await res.json();
   return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
@@ -86,17 +122,26 @@ async function callGeminiVision(system: string, user: string, imageDataUrl: stri
 
 export async function callAI(system: string, user: string, maxTokens = 2000): Promise<string> {
   const cfg = loadApiCfg();
-  if (cfg.provider === "gemini" && cfg.key) return callGemini(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
-  if (cfg.provider === "mistral" && cfg.key) return callMistral(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "gemini" && cfg.key)
+    return callGemini(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "groq" && cfg.key)
+    return callGroq(system, user, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "mistral" && cfg.key)
+    return callMistral(system, user, cfg.key, cfg.model, maxTokens);
 
   const r = await callAIFn({ data: { system, user, maxTokens } });
   return r.text;
 }
 
-export async function callVisionAI(system: string, user: string, imageDataUrl: string, maxTokens = 2000): Promise<string> {
+export async function callVisionAI(
+  system: string,
+  user: string,
+  imageDataUrl: string,
+  maxTokens = 2000,
+): Promise<string> {
   const cfg = loadApiCfg();
-  if (cfg.provider === "gemini" && cfg.key) return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
+  if (cfg.provider === "gemini" && cfg.key)
+    return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
 
   const r = await callAIVisionFn({ data: { system, user, imageDataUrl, maxTokens } });
   return r.text;
@@ -133,7 +178,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callAI(system, user, 3000);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse analyzeTopic response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -157,7 +207,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callAI(system, user, 1500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse generateKeywords response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -179,7 +234,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callVisionAI(system, user, imageDataUrl, 1500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse analyzeImageMetadata response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -207,7 +267,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callVisionAI(system, user, imageDataUrl, 2500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse generateWorkflowData response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -235,7 +300,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callVisionAI(system, user, imageDataUrl, 1500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse checkCompliance response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -261,7 +331,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callAI(system, user, 1500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse analyzeCommercialValue response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -285,7 +360,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callAI(system, user, 1500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse simulateSearch response:", res);
     throw new Error("Failed to parse AI response as JSON.");
@@ -318,7 +398,12 @@ Ensure the output is strictly valid JSON without markdown wrapping like \`\`\`js
 
   const res = await callAI(system, user, count > 5 ? 4000 : 2500);
   try {
-    return JSON.parse(res.trim().replace(/^```json\s*/, '').replace(/```\s*$/, ''));
+    return JSON.parse(
+      res
+        .trim()
+        .replace(/^```json\s*/, "")
+        .replace(/```\s*$/, ""),
+    );
   } catch (e) {
     console.error("Failed to parse generateProductionPack response:", res);
     throw new Error("Failed to parse AI response as JSON.");

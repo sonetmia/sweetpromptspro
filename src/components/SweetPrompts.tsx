@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
+import { AIProvidersSection } from "@/components/AIProvidersSection";
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
 type Provider = "lovable" | "gemini" | "groq" | "mistral";
@@ -2090,6 +2091,8 @@ function Settings({
 
       <Divider label="API Keys" />
       <FreeApiProviders C={C as any} />
+      <Divider label="AI Providers (Advanced)" />
+      <AIProvidersSection C={C as any} />
     </div>
   );
 }
@@ -2111,6 +2114,7 @@ function ApiKeySettings() {
     setTestMsg("");
     try {
       const t = await callAI("Reply with: OK", "ping", 10);
+      if (!t) throw new Error("empty response");
       setTestMsg("✓ Connected: " + (t.slice(0, 50) || "(empty)"));
     } catch (e: any) {
       setTestMsg("✗ " + e.message);
@@ -2118,6 +2122,7 @@ function ApiKeySettings() {
       setTesting(false);
     }
   }
+  // Google AI Studio may return 400 for invalid keys in some contexts
   const providers: { id: Provider; label: string; hint: string }[] = [
     { id: "lovable", label: "Lovable AI (Default)", hint: "No key required, billed via workspace" },
     { id: "gemini", label: "Google Gemini", hint: "Get key at aistudio.google.com" },

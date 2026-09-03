@@ -42,7 +42,15 @@ export function TypewriterEffect({
     }
 
     return () => clearTimeout(timeoutId);
-  }, [currentText, isDeleting, currentWordIndex, words, typingSpeed, deletingSpeed, delayBetweenWords]);
+  }, [
+    currentText,
+    isDeleting,
+    currentWordIndex,
+    words,
+    typingSpeed,
+    deletingSpeed,
+    delayBetweenWords,
+  ]);
 
   return (
     <span className="relative inline-block">
