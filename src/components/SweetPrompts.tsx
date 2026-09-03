@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { callAIFn, callAIVisionFn } from "@/lib/ai.functions";
 import { FreeApiProviders, CreatorCard } from "@/components/FreeApiProviders";
+import { AIProvidersSection } from "@/components/AIProvidersSection";
 
 // ── User API key config (Gemini / Groq) ───────────────────────────────────────
 type Provider = "lovable" | "gemini" | "groq" | "mistral";
@@ -2090,6 +2091,8 @@ function Settings({
 
       <Divider label="API Keys" />
       <FreeApiProviders C={C as any} />
+      <Divider label="AI Providers (Advanced)" />
+      <AIProvidersSection C={C as any} />
     </div>
   );
 }
