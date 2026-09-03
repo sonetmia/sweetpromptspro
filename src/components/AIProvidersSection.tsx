@@ -66,7 +66,10 @@ const bearer = (key: string): HeadersInit => ({ Authorization: `Bearer ${key}` }
 async function jsonOrThrow(res: Response): Promise<any> {
   if (res.status === 401 || res.status === 403) throw new Error("invalid");
   if (res.status === 429) throw new Error("ratelimit");
-  if (!res.ok) throw new Error(`http_${res.status}`);
+  if (!res.ok) {
+    if (res.status === 400 || res.status === 404) throw new Error("invalid");
+    throw new Error(`http_${res.status}`);
+  }
   return res.json();
 }
 
@@ -109,10 +112,15 @@ const REGISTRY: ProviderMeta[] = [
         .filter(Boolean);
     },
     async testConnection(key) {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
-      );
-      await jsonOrThrow(r);
+      try {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
+        );
+        await jsonOrThrow(r);
+      } catch (e) {
+        if (e.message !== "invalid") throw e;
+        throw new Error("invalid");
+      }
     },
   },
   {
