@@ -29,8 +29,6 @@ Sweet Prompts Pro is an AI microstock prompt studio for production-ready image p
 | AI integration | Configurable server-side OpenAI-compatible gateway |
 | Default model | Google Gemini 2.5 Flash |
 
-The application does not require Supabase, Lovable services, or third-party hosted authentication.
-
 ## Requirements
 
 - Node.js 20 or newer
