@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { enforceRateLimit, json, loginSchema, loginStudent, sessionResponse } from "@/lib/auth.server";
+import { enforceRateLimit, json, loginSchema, loginStudent, sessionResponse } from "@/lib/auth.local.server";
 
 export const Route = createFileRoute("/api/auth/login")({
   server: {
