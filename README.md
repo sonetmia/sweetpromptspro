@@ -54,19 +54,16 @@ The product follows four interface principles:
 | Animation | Framer Motion |
 | UI primitives | Radix UI and Lucide React |
 | Data and server state | TanStack React Query |
-| AI gateway | Lovable AI Gateway using Gemini 2.5 Flash by default |
+| AI gateway | Configurable server-side OpenAI-compatible AI gateway |
+| Default model | Google Gemini 2.5 Flash |
 | Alternative providers | Gemini, Groq, and Mistral can be configured from the application settings |
-| Deployment target | Cloudflare-compatible TanStack Start output |
+| Deployment target | Nitro-compatible production output |
 
 ## Requirements
 
-Before running the project locally, install the following:
+Before running the project locally, install Node.js 20 or newer and use npm or another compatible package manager.
 
-- Node.js 20 or newer
-- Bun, or another package manager compatible with the repository lockfile
-- A configured AI gateway key for server-side generation
-
-The default server-side integration expects `LOVABLE_API_KEY`. The key must remain server-side and must never be placed in client code or committed to the repository.
+A server-side OpenAI-compatible AI gateway must be configured for server-side generation.
 
 ## Local development
 
@@ -77,51 +74,44 @@ git clone https://github.com/sonetmia/sweetpromptspro.git
 cd sweetpromptspro
 ```
 
-Install dependencies using the repository’s lockfile:
+Install dependencies:
 
 ```bash
-bun install
+npm install
 ```
 
-Create a local environment file for the server-side AI gateway:
+Create a local environment file and configure the server-side AI gateway:
 
-```bash
-printf 'LOVABLE_API_KEY=your_key_here\n' > .env
+```env
+AI_GATEWAY_URL=https://your-ai-gateway.example/v1/chat/completions
+AI_GATEWAY_API_KEY=your_key_here
+AI_MODEL=google/gemini-2.5-flash
 ```
 
 Start the development server:
 
 ```bash
-bun run dev
+npm run dev
 ```
 
-The application is then available at the local URL printed by Vite. Do not commit `.env` or any file containing a real API key.
+Do not commit `.env` or any file containing a real API key.
 
 ## Available scripts
 
 | Command | Description |
 |---|---|
-| `bun run dev` | Start the Vite development server. |
-| `bun run build` | Create a production build for the TanStack Start application. |
-| `bun run build:dev` | Create a development-mode production build. |
-| `bun run preview` | Preview the generated production build locally. |
-| `bun run lint` | Run the repository ESLint and Prettier checks. |
-| `bun run format` | Format project files with Prettier. |
-
-Equivalent commands can be used with another package manager when required, for example `pnpm run dev` or `npm run dev` after installing dependencies.
+| `npm run dev` | Start the Vite development server. |
+| `npm run build` | Create a production build for the TanStack Start application. |
+| `npm run build:dev` | Create a development-mode production build. |
+| `npm run preview` | Preview the generated production build locally. |
+| `npm run lint` | Run the repository ESLint and Prettier checks. |
+| `npm run format` | Format project files with Prettier. |
 
 ## AI provider configuration
 
-The application uses the Lovable AI Gateway by default. The server functions in `src/lib/ai.functions.ts` read `LOVABLE_API_KEY` from the server environment and call the configured gateway for text and image-vision requests.
+The application uses a server-side OpenAI-compatible gateway configured through `AI_GATEWAY_URL`, `AI_GATEWAY_API_KEY`, and `AI_MODEL`. Credentials remain server-side and are never intended to be placed in browser code.
 
-Users can also configure supported personal providers from the application settings. The current provider options include:
-
-| Provider | Typical use | Configuration location |
-|---|---|---|
-| Lovable Gateway | Default text and vision generation | Server environment through `LOVABLE_API_KEY` |
-| Gemini | Direct text and vision generation | Application settings |
-| Groq | Direct text generation | Application settings |
-| Mistral | Direct text and vision generation | Application settings |
+Users can also configure supported personal providers from the application settings. The current provider options include Gemini, Groq, and Mistral.
 
 Personal provider configuration is stored locally in the browser. Treat personal API keys as sensitive credentials, use a restricted key where the provider supports it, and clear the setting before using a shared device.
 
@@ -137,7 +127,7 @@ src/
 ├── lib/
 │   ├── ai.functions.ts           # Server-side text and vision AI functions
 │   ├── error-capture.ts          # Error capture utilities
-│   └── error-page.ts              # Error-page helpers
+│   └── error-page.ts             # Error-page helpers
 ├── routes/
 │   ├── index.tsx                 # Home route and page metadata
 │   └── __root.tsx                # Root layout, providers, and global metadata
@@ -164,7 +154,7 @@ The main application is a single workspace with internal page state for the avai
 
 Generated prompts are passed through a local risk-validation layer that looks for signals such as brand names, trademarked products, copyrighted characters, restricted landmarks, identifiable people, logos, and named artist styles. These signals are intended as review guidance rather than a legal determination. Creators remain responsible for reviewing generated content, licensing requirements, model releases, and marketplace rules before publication.
 
-The application also surfaces common runtime failures, including missing AI gateway configuration, rate limits, exhausted gateway credits, provider errors, and invalid image data. Production deployments should provide a clear server-side secret configuration and an operational way to monitor failed AI requests.
+The application also surfaces common runtime failures, including missing AI gateway configuration, rate limits, provider errors, and invalid image data. Production deployments should provide a clear server-side secret configuration and an operational way to monitor failed AI requests.
 
 ## Contributing
 
@@ -177,8 +167,8 @@ git switch -c feat/your-change
 Keep UI changes scoped to the relevant component, preserve existing tool behavior, and verify both desktop and mobile layouts. Before opening a pull request, run:
 
 ```bash
-bun run build
-bun run lint
+npm run build
+npm run lint
 git diff --check
 ```
 
