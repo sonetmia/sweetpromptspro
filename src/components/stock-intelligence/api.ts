@@ -90,6 +90,25 @@ export async function callAI(system: string, user: string, maxTokens = 2000): Pr
   if (cfg.provider === "groq" && cfg.key) return callGroq(system, user, cfg.key, cfg.model, maxTokens);
   if (cfg.provider === "mistral" && cfg.key) return callMistral(system, user, cfg.key, cfg.model, maxTokens);
 
+
+  try {
+    const rawNewCfg = localStorage.getItem("sp_ai_providers_v1");
+    if (rawNewCfg) {
+      const parsed = JSON.parse(rawNewCfg);
+      const provs = parsed.providers || {};
+
+      if (provs.google?.enabled && provs.google?.apiKey) {
+        return callGemini(system, user, provs.google.apiKey, provs.google.model || "gemini-2.5-flash", maxTokens);
+      }
+      if (provs.groq?.enabled && provs.groq?.apiKey) {
+        return callGroq(system, user, provs.groq.apiKey, provs.groq.model || "llama-3.3-70b-versatile", maxTokens);
+      }
+      if (provs.mistral?.enabled && provs.mistral?.apiKey) {
+        return callMistral(system, user, provs.mistral.apiKey, provs.mistral.model || "mistral-large-latest", maxTokens);
+      }
+    }
+  } catch(e) {}
+
   const r = await callAIFn({ data: { system, user, maxTokens } });
   return r.text;
 }
@@ -97,6 +116,19 @@ export async function callAI(system: string, user: string, maxTokens = 2000): Pr
 export async function callVisionAI(system: string, user: string, imageDataUrl: string, maxTokens = 2000): Promise<string> {
   const cfg = loadApiCfg();
   if (cfg.provider === "gemini" && cfg.key) return callGeminiVision(system, user, imageDataUrl, cfg.key, cfg.model, maxTokens);
+
+
+  try {
+    const rawNewCfg = localStorage.getItem("sp_ai_providers_v1");
+    if (rawNewCfg) {
+      const parsed = JSON.parse(rawNewCfg);
+      const provs = parsed.providers || {};
+
+      if (provs.google?.enabled && provs.google?.apiKey) {
+        return callGeminiVision(system, user, imageDataUrl, provs.google.apiKey, provs.google.model || "gemini-2.5-flash", maxTokens);
+      }
+    }
+  } catch(e) {}
 
   const r = await callAIVisionFn({ data: { system, user, imageDataUrl, maxTokens } });
   return r.text;
