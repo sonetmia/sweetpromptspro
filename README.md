@@ -166,3 +166,5 @@ Keep changes focused and preserve existing application workflows and custom auth
 ## Maintainer
 
 Sweet Prompts Pro is developed by Md Sonet Mia.
+
+<!-- deployment trigger: 2026-09-09 -->
