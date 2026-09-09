@@ -10,6 +10,7 @@ const textInputSchema = z.object({
 const visionInputSchema = textInputSchema.extend({
   imageDataUrl: z
     .string()
+    .max(11_000_000)
     .regex(/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i, "Unsupported image data URL"),
 });
 
