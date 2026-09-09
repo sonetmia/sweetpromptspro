@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { json, requireAdmin, updateStudentStatus } from "@/lib/auth.server";
+import { json, requireAdmin, updateStudentStatus } from "@/lib/auth.local.server";
 import { z } from "zod";
 
 const schema = z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]) });
