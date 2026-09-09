@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getSessionUser, json } from "@/lib/auth.server";
+import { getSessionUser, json } from "@/lib/auth.local.server";
 
 export const Route = createFileRoute("/api/auth/me")({
   server: {
