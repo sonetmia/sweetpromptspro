@@ -17,10 +17,11 @@ const visionInputSchema = textInputSchema.extend({
 const clampTokens = (value?: number) => Math.min(Math.max(value ?? 1400, 100), 4000);
 
 async function gatewayRequest(body: unknown, vision = false) {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("AI gateway not configured");
+  const apiKey = process.env.AI_GATEWAY_API_KEY;
+  const apiUrl = process.env.AI_GATEWAY_URL;
+  if (!apiKey || !apiUrl) throw new Error("AI gateway not configured");
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +32,7 @@ async function gatewayRequest(body: unknown, vision = false) {
 
   if (!res.ok) {
     if (res.status === 429) throw new Error("Rate limit reached. Please wait and retry.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace settings.");
+    if (res.status === 402) throw new Error("AI credits exhausted. Please check the configured AI provider.");
     const t = await res.text().catch(() => "");
     throw new Error(`${vision ? "AI vision" : "AI"} error ${res.status}: ${t.slice(0, 120)}`);
   }
@@ -44,7 +45,7 @@ export const callAIFn = createServerFn({ method: "POST" })
   .inputValidator((data) => textInputSchema.parse(data))
   .handler(async ({ data }) =>
     gatewayRequest({
-      model: "google/gemini-2.5-flash",
+      model: process.env.AI_MODEL ?? "google/gemini-2.5-flash",
       max_tokens: clampTokens(data.maxTokens),
       messages: [
         { role: "system", content: data.system },
@@ -58,7 +59,7 @@ export const callAIVisionFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) =>
     gatewayRequest(
       {
-        model: "google/gemini-2.5-flash",
+        model: process.env.AI_MODEL ?? "google/gemini-2.5-flash",
         max_tokens: clampTokens(data.maxTokens),
         messages: [
           { role: "system", content: data.system },
