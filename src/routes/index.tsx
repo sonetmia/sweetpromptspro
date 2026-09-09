@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import SweetPrompts from "@/components/SweetPrompts";
+import AuthGate from "@/components/AuthGate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,5 +17,5 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  component: () => <SweetPrompts />,
+  component: () => <AuthGate />,
 });
