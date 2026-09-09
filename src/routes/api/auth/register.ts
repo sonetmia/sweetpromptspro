@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { enforceRateLimit, json, registerSchema, registerStudent } from "@/lib/auth.server";
+import { enforceRateLimit, json, registerSchema, registerStudent } from "@/lib/auth.local.server";
 
 export const Route = createFileRoute("/api/auth/register")({
   server: {
@@ -7,9 +7,7 @@ export const Route = createFileRoute("/api/auth/register")({
       POST: async ({ request }) => {
         try {
           enforceRateLimit(request, "register", 8);
-          const body = await request.json();
-          const input = registerSchema.parse(body);
-          await registerStudent(input);
+          await registerStudent(await request.json());
           return json({ ok: true, message: "Registration submitted. Please wait for Super Admin approval." }, 201);
         } catch (error) {
           if (error instanceof Response) return error;
