@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  SUPER_ADMIN
+}
+
+enum StudentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+model User {
+  id              String        @id @default(cuid())
+  fullName        String
+  whatsappNumber  String        @unique
+  email           String?
+  studentId       String?       @unique
+  passwordHash    String
+  role            Role          @default(STUDENT)
+  status          StudentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  lastLoginAt     DateTime?
+  sessions        Session[]
+
+  @@index([role, status])
+  @@index([createdAt])
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  userId         String
+  tokenHash      String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  rememberDevice Boolean  @default(false)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
