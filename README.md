@@ -1,207 +1,170 @@
 # Sweet Prompts Pro
 
-> A focused AI microstock prompt studio for creating production-ready image prompts, metadata, variations, and creative stock workflows.
-
-Sweet Prompts Pro helps creators move from a short idea to a structured, commercially minded output. The application combines bulk prompt generation, image-to-prompt workflows, metadata generation, prompt improvement, creative variations, and stock-production intelligence in one workspace.
-
-## Product overview
-
-Sweet Prompts Pro is designed for creators, stock contributors, designers, and production teams who need repeatable prompt workflows rather than one-off text generation. The interface keeps the first step simple while exposing deeper controls for users who need more specificity, volume, or marketplace-oriented output.
-
-The primary workflow is:
-
-```text
-Describe an idea → choose a tool → generate structured output → review → copy or export
-```
+Sweet Prompts Pro is an AI microstock prompt studio for production-ready image prompts, metadata, variations, image workflows, and stock-production intelligence.
 
 ## Core capabilities
 
-| Area | Capability | Purpose |
-|---|---|---|
-| Prompt generation | Bulk Image Prompt Generator | Create multiple microstock-oriented prompts for a subject or concept. |
-| Prompt generation | Idea Generator | Turn an early concept into several AI-ready creative directions. |
-| Prompt generation | JPG Creator | Produce photo-oriented prompts with commercial composition and stock-use considerations. |
-| Prompt generation | PNG Creator | Generate isolated transparent-asset concepts for design workflows. |
-| Prompt refinement | Prompt Improver | Analyze an existing prompt and return a clearer, more detailed version. |
-| Prompt refinement | Prompt Variations | Create multiple creative angles from one base prompt. |
-| Prompt refinement | Prompt Expander | Turn a short idea into a richer, more descriptive prompt. |
-| Prompt refinement | Prompt Fixer | Detect common prompt problems and provide a repaired version. |
-| Prompt refinement | Prompt Translator | Translate prompt content into another language while retaining intent. |
-| Creative planning | Brainstormer | Generate creative directions before committing to a production prompt. |
-| Asset workflows | Image Studio | Convert uploaded images into prompts or marketplace-ready metadata. |
-| Stock intelligence | Production Pack | Build a broader stock-production package from a single topic. |
-| Stock intelligence | Opportunity Finder | Explore topic opportunities, search terms, and related concepts. |
-| Stock intelligence | Keyword Intelligence | Generate primary, secondary, and long-tail keyword suggestions. |
-| Safety and quality | Microstock risk validator | Flag possible brands, copyrighted characters, landmarks, identifiable people, and other risk signals. |
-
-## Experience principles
-
-The product follows four interface principles:
-
-1. **Clear first action.** A new user should be able to open a studio and generate an output without configuring every advanced option.
-2. **Progressive control.** Detailed options should appear only when they are useful, keeping the main workspace calm and readable.
-3. **Reusable output.** Generated prompts should be easy to copy, export, compare, and reuse in a production workflow.
-4. **Commercial awareness.** Prompt generation should consider composition, format, technical detail, metadata, and potential marketplace restrictions.
+- Bulk image prompt generation
+- Idea generation and brainstorming
+- JPG and PNG prompt creation
+- Prompt improvement, expansion, fixing, translation, and variations
+- Image-to-prompt and image-to-metadata workflows
+- Stock opportunity, keyword, compliance, and production tools
+- Local risk validation for common microstock concerns
+- Custom student authentication with Super Admin approval
 
 ## Technology stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19 with TypeScript |
-| Application framework | TanStack Start and TanStack Router |
-| Build tool | Vite |
-| Styling | Tailwind CSS with project-level CSS variables |
-| Animation | Framer Motion |
-| UI primitives | Radix UI and Lucide React |
-| Data and server state | TanStack React Query |
-| AI gateway | Lovable AI Gateway using Gemini 2.5 Flash by default |
-| Alternative providers | Gemini, Groq, and Mistral can be configured from the application settings |
-| Deployment target | Cloudflare-compatible TanStack Start output |
+| Frontend | React 19 + TypeScript |
+| Application | TanStack Start + TanStack Router |
+| Build | Vite + Nitro |
+| Styling | Tailwind CSS |
+| UI | Radix UI + Lucide React |
+| Server state | TanStack React Query |
+| Authentication | Application-owned Prisma + PostgreSQL |
+| Password hashing | Node.js scrypt |
+| Sessions | SHA-256 token hashes + HttpOnly SameSite cookies |
+| AI integration | Configurable server-side OpenAI-compatible gateway |
+| Default model | Google Gemini 2.5 Flash |
+
+The application does not require Supabase, Lovable services, or third-party hosted authentication.
 
 ## Requirements
 
-Before running the project locally, install the following:
-
 - Node.js 20 or newer
-- Bun, or another package manager compatible with the repository lockfile
-- A configured AI gateway key for server-side generation
+- npm
+- PostgreSQL database
+- An OpenAI-compatible AI gateway for server-side generation
 
-The default server-side integration expects `LOVABLE_API_KEY`. The key must remain server-side and must never be placed in client code or committed to the repository.
+## Environment configuration
+
+Copy `.env.example` to `.env` and configure:
+
+```env
+DATABASE_URL=
+ADMIN_WHATSAPP=
+ADMIN_PASSWORD_HASH=
+APP_ORIGIN=
+AI_GATEWAY_URL=
+AI_GATEWAY_API_KEY=
+AI_MODEL=google/gemini-2.5-flash
+```
+
+Never commit `.env` or real credentials.
 
 ## Local development
 
-Clone the repository and enter the project directory:
-
 ```bash
-git clone https://github.com/sonetmia/sweetpromptspro.git
-cd sweetpromptspro
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run dev
 ```
 
-Install dependencies using the repository’s lockfile:
+For development database schema changes, use `npx prisma migrate dev` when appropriate.
+
+## Build and verification
 
 ```bash
-bun install
+npm run build
+npm run lint
+git diff --check
 ```
 
-Create a local environment file for the server-side AI gateway:
+The production build runs `prisma generate` before the Vite build.
+
+## Custom authentication
+
+Student accounts are managed by the application database.
+
+```text
+Register
+   ↓
+PENDING
+   ↓
+Super Admin review
+   ↓
+APPROVED
+   ↓
+Student Login
+   ↓
+Sweet Prompts
+```
+
+Supported student states:
+
+- `PENDING`
+- `APPROVED`
+- `REJECTED`
+- `SUSPENDED`
+
+Only approved students can access the protected application. Rejecting or suspending a student invalidates active sessions.
+
+### Super Admin setup
+
+Generate a password hash:
 
 ```bash
-printf 'LOVABLE_API_KEY=your_key_here\n' > .env
+npm run auth:hash -- "YOUR_ADMIN_PASSWORD"
 ```
 
-Start the development server:
+Put the generated scrypt hash in `ADMIN_PASSWORD_HASH` and configure `ADMIN_WHATSAPP`.
 
-```bash
-bun run dev
-```
+Admin login is available at `/admin/login`.
 
-The application is then available at the local URL printed by Vite. Do not commit `.env` or any file containing a real API key.
+## AI configuration
 
-## Available scripts
+Server-side AI requests use an OpenAI-compatible endpoint configured with:
 
-| Command | Description |
-|---|---|
-| `bun run dev` | Start the Vite development server. |
-| `bun run build` | Create a production build for the TanStack Start application. |
-| `bun run build:dev` | Create a development-mode production build. |
-| `bun run preview` | Preview the generated production build locally. |
-| `bun run lint` | Run the repository ESLint and Prettier checks. |
-| `bun run format` | Format project files with Prettier. |
+- `AI_GATEWAY_URL`
+- `AI_GATEWAY_API_KEY`
+- `AI_MODEL`
 
-Equivalent commands can be used with another package manager when required, for example `pnpm run dev` or `npm run dev` after installing dependencies.
-
-## AI provider configuration
-
-The application uses the Lovable AI Gateway by default. The server functions in `src/lib/ai.functions.ts` read `LOVABLE_API_KEY` from the server environment and call the configured gateway for text and image-vision requests.
-
-Users can also configure supported personal providers from the application settings. The current provider options include:
-
-| Provider | Typical use | Configuration location |
-|---|---|---|
-| Lovable Gateway | Default text and vision generation | Server environment through `LOVABLE_API_KEY` |
-| Gemini | Direct text and vision generation | Application settings |
-| Groq | Direct text generation | Application settings |
-| Mistral | Direct text and vision generation | Application settings |
-
-Personal provider configuration is stored locally in the browser. Treat personal API keys as sensitive credentials, use a restricted key where the provider supports it, and clear the setting before using a shared device.
+The API key is read only on the server. The application can also support personal provider settings in the browser where those features are enabled. Personal API keys should be treated as sensitive credentials.
 
 ## Repository structure
 
 ```text
 src/
-├── components/
-│   ├── SweetPrompts.tsx          # Main application shell and prompt tools
-│   ├── FreeApiProviders.tsx      # Provider information and creator panel
-│   ├── AIProvidersSection.tsx    # AI provider presentation section
-│   └── stock-intelligence/       # Image and stock-production workflows
+├── components/                  # Application UI and workflows
+├── components/stock-intelligence/
 ├── lib/
-│   ├── ai.functions.ts           # Server-side text and vision AI functions
-│   ├── error-capture.ts          # Error capture utilities
-│   └── error-page.ts              # Error-page helpers
-├── routes/
-│   ├── index.tsx                 # Home route and page metadata
-│   └── __root.tsx                # Root layout, providers, and global metadata
-├── assets/                       # Local visual assets
-└── styles.css                    # Global styles and theme tokens
+│   ├── ai.functions.ts          # Server-side AI gateway functions
+│   └── auth.local.server.ts     # Custom Prisma authentication
+├── routes/                      # Application and API routes
+├── assets/                      # Local visual assets
+├── server.ts                    # TanStack Start server entry
+└── styles.css                   # Global styles
+prisma/
+├── schema.prisma                # PostgreSQL data model
+└── migrations/                  # Database migrations
+scripts/
+└── generate-admin-hash.mjs      # Admin password hash generator
 ```
 
-## Application navigation
+## Security notes
 
-The main application is a single workspace with internal page state for the available tools. The principal destinations are:
-
-| Destination | Description |
-|---|---|
-| Home | Product landing experience and tool entry points. |
-| Image Studio | Unified image-to-prompt and image-to-metadata workflow. |
-| Bulk Generator | High-volume prompt generation for multiple subjects. |
-| JPG Creator | Photo-oriented microstock prompt generation. |
-| PNG Creator | Transparent PNG asset prompt generation. |
-| Prompt Library | Curated prompt collections and reusable examples. |
-| Stock Intelligence | Production, metadata, keyword, and opportunity workflows. |
-| Settings | Theme and provider preferences. |
-
-## Quality and safety behavior
-
-Generated prompts are passed through a local risk-validation layer that looks for signals such as brand names, trademarked products, copyrighted characters, restricted landmarks, identifiable people, logos, and named artist styles. These signals are intended as review guidance rather than a legal determination. Creators remain responsible for reviewing generated content, licensing requirements, model releases, and marketplace rules before publication.
-
-The application also surfaces common runtime failures, including missing AI gateway configuration, rate limits, exhausted gateway credits, provider errors, and invalid image data. Production deployments should provide a clear server-side secret configuration and an operational way to monitor failed AI requests.
+- Passwords are stored as scrypt hashes.
+- Session tokens are random values; only SHA-256 hashes are persisted.
+- Sessions use HttpOnly and SameSite cookies.
+- Authentication APIs perform same-origin checks and rate limiting.
+- Secrets must remain in server environment variables.
+- `DATABASE_URL`, admin credentials, and AI gateway credentials must never be exposed through client-side `VITE_*` variables.
 
 ## Contributing
 
-Create a focused branch for each change:
+Before submitting changes:
 
 ```bash
-git switch -c feat/your-change
-```
-
-Keep UI changes scoped to the relevant component, preserve existing tool behavior, and verify both desktop and mobile layouts. Before opening a pull request, run:
-
-```bash
-bun run build
-bun run lint
+npm run build
+npm run lint
 git diff --check
 ```
 
-A pull request should explain the user problem, summarize the implementation, mention any new configuration, and include screenshots or a short recording for significant visual changes.
-
-## Roadmap direction
-
-The next product improvements should prioritize workflow quality over feature volume. High-value follow-up work includes reusable variable-based templates, prompt version history, prompt comparison, stronger library search, saved projects, and model-specific output optimization. These features should be introduced progressively so the primary generation flow remains fast and understandable.
-
-## License and usage
-
-No license file is currently defined in this repository. Until a license is added, reuse, redistribution, and commercial use should be treated as governed by the repository owner’s explicit permission and any third-party service terms that apply.
+Keep changes focused and preserve existing application workflows and custom authentication behavior.
 
 ## Maintainer
 
-Sweet Prompts Pro is developed by **Md Sonet Mia**.
-
-For project questions or collaboration, open a GitHub issue or contact the maintainer through the project’s existing communication channel.
-
-## References
-
-- [Sweet Prompts Pro repository](https://github.com/sonetmia/sweetpromptspro)
-- [TanStack Start documentation](https://tanstack.com/start/latest)
-- [Vite documentation](https://vite.dev/guide/)
-- [Framer Motion documentation](https://motion.dev/docs/react)
-- [Tailwind CSS documentation](https://tailwindcss.com/docs)
+Sweet Prompts Pro is developed by Md Sonet Mia.
