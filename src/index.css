@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-base: #F5F0E6;
+    --bg-surface: #EDE6D8;
+    --bg-surface-hover: #E2D9C7;
+    --border-color: #D8CEBF;
+    --text-primary: #1A2024;
+    --text-secondary: #606669;
+    --accent: #C74A43;
+    --accent-hover: #B53F39;
+    --accent-coral: #C74A43;
+    --accent-orange: #D9672E;
+    --deep-blue: #10232D;
+    --muted-teal: #21434B;
+    --soft-cream: #F3EDE2;
+    --warm-white: #E8E4DC;
+  }
+
+  .dark {
+    --bg-base: #090B0D;
+    --bg-surface: #11161A;
+    --bg-surface-hover: #171E24;
+    --border-color: #272D30;
+    --text-primary: #F3EDE2;
+    --text-secondary: #8C8A86;
+    --accent: #C74A43;
+    --accent-hover: #B53F39;
+    --accent-coral: #C74A43;
+    --accent-orange: #D9672E;
+    --deep-blue: #10232D;
+    --muted-teal: #21434B;
+    --soft-cream: #F3EDE2;
+    --warm-white: #E8E4DC;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em;
+    line-height: 1.55;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(155, 163, 192, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(155, 163, 192, 0.4);
+  }
+}
+
+.font-editorial {
+  font-family: 'Newsreader', 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+
+.font-brand-sans {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

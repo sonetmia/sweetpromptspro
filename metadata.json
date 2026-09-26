@@ -1,0 +1,6 @@
+{
+  "name": "SweetPrompts Pro",
+  "description": "AI-Powered Prompt & Microstock Workflow Studio",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
