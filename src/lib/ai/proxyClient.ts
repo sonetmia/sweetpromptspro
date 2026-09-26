@@ -127,31 +127,53 @@ async function executeDirectClientGenerate(payload: GeneratePayload): Promise<st
   // Groq Client
   if (provider === 'groq') {
     if (!apiKey) throw new Error('Groq API Key is missing. Please enter your Groq key in Settings.');
-    const selectedModel = model || 'llama-3.3-70b-versatile';
-    const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: 'system', content: cleanSystem },
-          { role: 'user', content: prompt }
-        ],
-        response_format: jsonMode ? { type: 'json_object' } : undefined,
-        temperature,
-        max_tokens: maxTokens,
-      }),
-    });
+    const initialModel = model || 'llama-3.1-8b-instant';
+    const candidateModels = Array.from(new Set([initialModel, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it']));
 
-    if (!fetchRes.ok) {
-      const errText = await fetchRes.text();
-      throw new Error(`Groq API Error (${fetchRes.status}): ${errText}`);
+    let lastGroqErr: any = null;
+    for (const candidate of candidateModels) {
+      try {
+        const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: candidate,
+            messages: [
+              { role: 'system', content: cleanSystem },
+              { role: 'user', content: prompt }
+            ],
+            response_format: jsonMode ? { type: 'json_object' } : undefined,
+            temperature,
+            max_tokens: maxTokens,
+          }),
+        });
+
+        if (!fetchRes.ok) {
+          const errText = await fetchRes.text();
+          if (fetchRes.status === 404 || errText.includes('does not exist') || errText.includes('model_not_found') || errText.includes('access')) {
+            lastGroqErr = new Error(`Groq API Error (${candidate}): ${errText}`);
+            continue; // Try next candidate model
+          }
+          throw new Error(`Groq API Error (${fetchRes.status}): ${errText}`);
+        }
+
+        const data = await fetchRes.json();
+        return data.choices?.[0]?.message?.content || '';
+      } catch (gErr: any) {
+        lastGroqErr = gErr;
+        if (String(gErr.message).includes('does not exist') || String(gErr.message).includes('access') || String(gErr.message).includes('model_not_found')) {
+          continue;
+        }
+        throw gErr;
+      }
     }
-    const data = await fetchRes.json();
-    return data.choices?.[0]?.message?.content || '';
+
+    if (lastGroqErr) {
+      throw lastGroqErr;
+    }
   }
 
   // OpenRouter Client
@@ -189,31 +211,41 @@ async function executeDirectClientGenerate(payload: GeneratePayload): Promise<st
   // Mistral Client
   if (provider === 'mistral') {
     if (!apiKey) throw new Error('Mistral API Key is missing. Please enter your Mistral key in Settings.');
-    const selectedModel = model || 'mistral-small-latest';
-    const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: 'system', content: cleanSystem },
-          { role: 'user', content: prompt }
-        ],
-        response_format: jsonMode ? { type: 'json_object' } : undefined,
-        temperature,
-        max_tokens: maxTokens,
-      }),
-    });
+    const initialModel = (model && model !== 'mistral-large-latest') ? model : 'mistral-small-latest';
+    const candidateModels = Array.from(new Set([initialModel, 'mistral-small-latest', 'open-mistral-7b']));
 
-    if (!fetchRes.ok) {
-      const errText = await fetchRes.text();
-      throw new Error(`Mistral API Error (${fetchRes.status}): ${errText}`);
+    let lastErrText = '';
+    for (const candidate of candidateModels) {
+      const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: candidate,
+          messages: [
+            { role: 'system', content: cleanSystem },
+            { role: 'user', content: prompt }
+          ],
+          response_format: jsonMode ? { type: 'json_object' } : undefined,
+          temperature,
+          max_tokens: maxTokens,
+        }),
+      });
+
+      if (!fetchRes.ok) {
+        lastErrText = await fetchRes.text();
+        if (fetchRes.status === 403 || lastErrText.includes('subscription tier')) {
+          continue;
+        }
+        throw new Error(`Mistral API Error (${fetchRes.status}): ${lastErrText}`);
+      }
+      const data = await fetchRes.json();
+      return data.choices?.[0]?.message?.content || '';
     }
-    const data = await fetchRes.json();
-    return data.choices?.[0]?.message?.content || '';
+
+    throw new Error(`Mistral API Error (403): ${lastErrText || 'Model not available in your subscription tier'}`);
   }
 
   // Cerebras Client

@@ -92,31 +92,53 @@ export default async function handler(req: any, res: any) {
       const groqKey = apiKey || process.env.GROQ_API_KEY;
       if (!groqKey) return res.status(400).json({ error: 'Groq API key not configured. Please add your key in Settings.' });
 
-      const selectedModel = model || 'llama-3.3-70b-versatile';
-      const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${groqKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: cleanSystem },
-            { role: 'user', content: prompt }
-          ],
-          response_format: jsonMode ? { type: 'json_object' } : undefined,
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
+      const initialModel = model || 'llama-3.1-8b-instant';
+      const candidateModels = Array.from(new Set([initialModel, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it']));
 
-      if (!fetchRes.ok) {
-        const errText = await fetchRes.text();
-        return res.status(fetchRes.status).json({ error: `Groq error: ${errText}` });
+      let lastGroqErr: any = null;
+      for (const candidate of candidateModels) {
+        try {
+          const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqKey}`,
+            },
+            body: JSON.stringify({
+              model: candidate,
+              messages: [
+                { role: 'system', content: cleanSystem },
+                { role: 'user', content: prompt }
+              ],
+              response_format: jsonMode ? { type: 'json_object' } : undefined,
+              temperature,
+              max_tokens: maxTokens,
+            }),
+          });
+
+          if (!fetchRes.ok) {
+            const errText = await fetchRes.text();
+            if (fetchRes.status === 404 || errText.includes('does not exist') || errText.includes('model_not_found') || errText.includes('access')) {
+              lastGroqErr = new Error(`Groq error (${candidate}): ${errText}`);
+              continue; // Try next model
+            }
+            return res.status(fetchRes.status).json({ error: `Groq error: ${errText}` });
+          }
+
+          const data = await fetchRes.json();
+          return res.status(200).json({ result: data.choices?.[0]?.message?.content || '', modelUsed: candidate });
+        } catch (gErr: any) {
+          lastGroqErr = gErr;
+          if (String(gErr.message).includes('does not exist') || String(gErr.message).includes('access') || String(gErr.message).includes('model_not_found')) {
+            continue;
+          }
+          throw gErr;
+        }
       }
-      const data = await fetchRes.json();
-      return res.status(200).json({ result: data.choices?.[0]?.message?.content || '' });
+
+      if (lastGroqErr) {
+        return res.status(400).json({ error: lastGroqErr.message || 'Groq generation failed' });
+      }
     }
 
     // OpenRouter Provider
@@ -158,31 +180,42 @@ export default async function handler(req: any, res: any) {
       const mistralKey = apiKey || process.env.MISTRAL_API_KEY;
       if (!mistralKey) return res.status(400).json({ error: 'Mistral API key not configured.' });
 
-      const selectedModel = model || 'mistral-small-latest';
-      const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${mistralKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: cleanSystem },
-            { role: 'user', content: prompt }
-          ],
-          response_format: jsonMode ? { type: 'json_object' } : undefined,
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
+      const initialModel = (model && model !== 'mistral-large-latest') ? model : 'mistral-small-latest';
+      const candidateModels = Array.from(new Set([initialModel, 'mistral-small-latest', 'open-mistral-7b']));
 
-      if (!fetchRes.ok) {
-        const errText = await fetchRes.text();
-        return res.status(fetchRes.status).json({ error: `Mistral error: ${errText}` });
+      let lastErrText = '';
+      for (const candidate of candidateModels) {
+        const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${mistralKey}`,
+          },
+          body: JSON.stringify({
+            model: candidate,
+            messages: [
+              { role: 'system', content: cleanSystem },
+              { role: 'user', content: prompt }
+            ],
+            response_format: jsonMode ? { type: 'json_object' } : undefined,
+            temperature,
+            max_tokens: maxTokens,
+          }),
+        });
+
+        if (!fetchRes.ok) {
+          lastErrText = await fetchRes.text();
+          if (fetchRes.status === 403 || lastErrText.includes('subscription tier')) {
+            continue;
+          }
+          return res.status(fetchRes.status).json({ error: `Mistral error: ${lastErrText}` });
+        }
+
+        const data = await fetchRes.json();
+        return res.status(200).json({ result: data.choices?.[0]?.message?.content || '', modelUsed: candidate });
       }
-      const data = await fetchRes.json();
-      return res.status(200).json({ result: data.choices?.[0]?.message?.content || '' });
+
+      return res.status(403).json({ error: `Mistral error: ${lastErrText || 'Model not available in your subscription tier'}` });
     }
 
     return res.status(400).json({ error: `Unknown provider: ${provider}` });

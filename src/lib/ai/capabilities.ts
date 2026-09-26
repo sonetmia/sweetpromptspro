@@ -28,12 +28,13 @@ export const PROVIDER_CAPABILITIES: Record<AIProviderName, ProviderCapabilities>
     supportsStructuredJson: true,
     speedTier: 'ultra-fast',
     freeOrLowCostTier: true,
-    defaultTextModel: 'llama-3.3-70b-versatile',
+    defaultTextModel: 'llama-3.1-8b-instant',
     defaultVisionModel: 'llama-3.2-11b-vision-preview',
-    defaultStructuredModel: 'llama-3.3-70b-versatile',
+    defaultStructuredModel: 'llama-3.1-8b-instant',
     supportedModels: [
-      'llama-3.3-70b-versatile',
       'llama-3.1-8b-instant',
+      'llama-3.3-70b-versatile',
+      'llama3-70b-8192',
       'mixtral-8x7b-32768',
       'gemma2-9b-it',
       'llama-3.2-11b-vision-preview'
@@ -45,13 +46,14 @@ export const PROVIDER_CAPABILITIES: Record<AIProviderName, ProviderCapabilities>
     supportsStructuredJson: true,
     speedTier: 'fast',
     freeOrLowCostTier: true,
-    defaultTextModel: 'mistral-large-latest',
+    defaultTextModel: 'mistral-small-latest',
     defaultVisionModel: 'pixtral-12b-2409',
-    defaultStructuredModel: 'mistral-large-latest',
+    defaultStructuredModel: 'mistral-small-latest',
     supportedModels: [
-      'mistral-large-latest',
-      'mistral-medium-latest',
       'mistral-small-latest',
+      'open-mistral-7b',
+      'mistral-medium-latest',
+      'mistral-large-latest',
       'codestral-latest',
       'pixtral-12b-2409'
     ]

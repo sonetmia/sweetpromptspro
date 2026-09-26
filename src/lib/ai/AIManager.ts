@@ -50,8 +50,39 @@ export class AIManagerClass {
   }
 
   /**
+   * Helper to resolve all configured provider keys
+   */
+  getAllConfiguredProviders(requireVision: boolean = false): Array<{ provider: AIProviderName; apiKey: string }> {
+    const settings = this.getSettings();
+    const keysMap = settings.apiKeys || {};
+    const result: Array<{ provider: AIProviderName; apiKey: string }> = [];
+
+    const activeProv = settings.provider || 'gemini';
+    const activeKey = keysMap[activeProv] || (settings.apiKey ? settings.apiKey : '');
+
+    // Place active provider first if configured
+    if (activeKey && activeKey.trim()) {
+      if (!requireVision || PROVIDER_CAPABILITIES[activeProv]?.supportsVision) {
+        result.push({ provider: activeProv, apiKey: activeKey.trim() });
+      }
+    }
+
+    // Add remaining configured providers
+    for (const prov of PROVIDER_ORDER) {
+      if (prov === activeProv) continue;
+      const k = keysMap[prov];
+      if (k && k.trim()) {
+        if (!requireVision || PROVIDER_CAPABILITIES[prov]?.supportsVision) {
+          result.push({ provider: prov, apiKey: k.trim() });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Resolves effective provider and API key with auto-fallback.
-   * Prioritizes vision-capable providers (Gemini, Groq, Mistral, OpenRouter) so any 1 key enables the entire website.
    */
   getEffectiveProviderAndKey(
     requestedProvider?: AIProviderName,
@@ -61,7 +92,6 @@ export class AIManagerClass {
     const settings = this.getSettings();
     const keysMap = settings.apiKeys || {};
 
-    // Helper to safely resolve a key for any provider
     const getKeyForProvider = (prov: AIProviderName): string => {
       const k = keysMap[prov];
       if (k && k.trim()) return k.trim();
@@ -71,13 +101,11 @@ export class AIManagerClass {
       return '';
     };
 
-    // 1. If explicit key override provided
     if (requestedKey && requestedKey.trim()) {
       const prov = requestedProvider || settings.provider || 'gemini';
       return { provider: prov, apiKey: requestedKey.trim() };
     }
 
-    // 2. Check if requested provider has a key
     if (requestedProvider) {
       const key = getKeyForProvider(requestedProvider);
       if (key) {
@@ -87,7 +115,6 @@ export class AIManagerClass {
       }
     }
 
-    // 3. Check if active settings.provider has a key
     const currentProv = settings.provider || 'gemini';
     const currentKey = getKeyForProvider(currentProv);
     if (currentKey) {
@@ -96,7 +123,6 @@ export class AIManagerClass {
       }
     }
 
-    // 4. Fallback: Scan vision-capable providers first (Gemini, Groq, Mistral, OpenRouter)
     for (const prov of PROVIDER_ORDER) {
       const key = getKeyForProvider(prov);
       if (key) {
@@ -106,44 +132,24 @@ export class AIManagerClass {
       }
     }
 
-    // 5. General fallback if no exact capability match
-    for (const prov of PROVIDER_ORDER) {
-      const key = getKeyForProvider(prov);
-      if (key) {
-        return { provider: prov, apiKey: key };
-      }
-    }
-
     return { provider: currentProv, apiKey: currentKey };
   }
 
-  /**
-   * Gets capability matrix for a provider (or the currently active provider)
-   */
   getCapabilities(provider?: AIProviderName): ProviderCapabilities {
     const targetProvider = provider || this.getActiveProvider();
     return PROVIDER_CAPABILITIES[targetProvider] || PROVIDER_CAPABILITIES.gemini;
   }
 
-  /**
-   * Auto-detects provider based on the pasted API key format
-   */
   detectProviderFromKey(key: string): AIProviderName | null {
     return providerRegistry.detectProviderFromKey(key);
   }
 
-  /**
-   * Gets available models for the given provider (or active provider)
-   */
   getAvailableModels(provider?: AIProviderName): string[] {
     const target = provider || this.getActiveProvider();
     const caps = PROVIDER_CAPABILITIES[target];
     return caps ? caps.supportedModels : PROVIDER_CAPABILITIES.gemini.supportedModels;
   }
 
-  /**
-   * Gets full model information list for a provider
-   */
   async listModelInfo(provider?: AIProviderName): Promise<AIModelInfo[]> {
     const target = provider || this.getActiveProvider();
     const adapter = providerRegistry.get(target);
@@ -152,9 +158,6 @@ export class AIManagerClass {
     return adapter.listModels({ apiKey, model: settings.model });
   }
 
-  /**
-   * Tests the connection with real lightweight ping to the provider
-   */
   async testConnection(
     provider?: AIProviderName, 
     apiKey?: string, 
@@ -177,55 +180,76 @@ export class AIManagerClass {
   }
 
   /**
-   * Generates text via the centralized provider adapter and router.
-   * Seamlessly resolves any configured API key across all providers.
+   * Helper to check if an error is a Rate Limit / Quota Exceeded error (HTTP 429)
+   */
+  private isRateLimitError(err: any): boolean {
+    const msg = String(err?.message || err?.error || err || '').toLowerCase();
+    return (
+      msg.includes('429') ||
+      msg.includes('quota') ||
+      msg.includes('rate limit') ||
+      msg.includes('too many requests') ||
+      msg.includes('resource_exhausted')
+    );
+  }
+
+  /**
+   * Generates text with automatic provider fallback if Rate-Limited (429)
    */
   async generateText(prompt: string, options: AIOptions = {}): Promise<string> {
     const settings = this.getSettings();
-    const { provider, apiKey } = this.getEffectiveProviderAndKey(
-      options.providerOverride,
-      options.apiKeyOverride,
-      false
-    );
+    const configuredList = this.getAllConfiguredProviders(false);
 
-    if (!apiKey) {
+    if (configuredList.length === 0) {
       throw new Error(
         'No AI API Key configured. Please go to Settings and add your API key (Google Gemini, Groq, Mistral, OpenRouter, Cerebras, or Hugging Face) to generate stock prompts.'
       );
     }
 
-    const adapter = providerRegistry.get(provider);
+    let lastError: any = null;
 
-    // Resolve optimal model via capability router
-    const model = ModelRouter.resolveModel({
-      provider,
-      taskType: options.taskType || 'general-text',
-      preferredModel: options.model || (provider === settings.provider ? settings.model : undefined),
-      autoModel: settings.autoModel ?? true,
-    });
+    for (const item of configuredList) {
+      try {
+        const adapter = providerRegistry.get(item.provider);
+        const model = ModelRouter.resolveModel({
+          provider: item.provider,
+          taskType: options.taskType || 'general-text',
+          preferredModel: options.model || (item.provider === settings.provider ? settings.model : undefined),
+          autoModel: settings.autoModel ?? true,
+        });
 
-    const req: GenerateTextRequest = {
-      prompt,
-      systemInstruction: options.systemInstruction,
-      model,
-      taskType: options.taskType,
-      temperature: options.temperature ?? settings.temperature,
-      maxTokens: options.maxTokens ?? settings.maxTokens,
-    };
+        const req: GenerateTextRequest = {
+          prompt,
+          systemInstruction: options.systemInstruction,
+          model,
+          taskType: options.taskType,
+          temperature: options.temperature ?? settings.temperature,
+          maxTokens: options.maxTokens ?? settings.maxTokens,
+        };
 
-    const config: ProviderConfig = {
-      apiKey,
-      model,
-      temperature: options.temperature,
-      maxTokens: options.maxTokens,
-    };
+        const config: ProviderConfig = {
+          apiKey: item.apiKey,
+          model,
+          temperature: options.temperature,
+          maxTokens: options.maxTokens,
+        };
 
-    return adapter.generateText(req, config);
+        return await adapter.generateText(req, config);
+      } catch (err: any) {
+        lastError = err;
+        if (this.isRateLimitError(err) && configuredList.length > 1) {
+          console.warn(`[AIManager] ${item.provider} rate limited/quota reached. Retrying with secondary provider...`);
+          continue; // Try next configured provider
+        }
+        throw err;
+      }
+    }
+
+    throw lastError || new Error('Failed to generate text.');
   }
 
   /**
-   * Generates vision analysis for image inputs.
-   * Auto-routes to a vision-capable configured provider if current one doesn't support vision.
+   * Generates vision with automatic provider fallback if Rate-Limited (429)
    */
   async generateVision(
     imageBase64: string, 
@@ -234,92 +258,107 @@ export class AIManagerClass {
     options: AIOptions = {}
   ): Promise<string> {
     const settings = this.getSettings();
-    const { provider, apiKey } = this.getEffectiveProviderAndKey(
-      options.providerOverride,
-      options.apiKeyOverride,
-      true // require vision
-    );
+    const configuredList = this.getAllConfiguredProviders(true); // require vision
 
-    if (!apiKey) {
+    if (configuredList.length === 0) {
       throw new Error(
         'No API Key found for vision analysis. Please add a Google Gemini, Groq, Mistral, or OpenRouter API key in Settings.'
       );
     }
 
-    const adapter = providerRegistry.get(provider);
+    let lastError: any = null;
 
-    // Check capability
-    if (!adapter.capabilities.supportsVision) {
-      throw new Error(
-        `Vision analysis is not supported by ${adapter.displayName}. Please configure Google Gemini, Groq, or OpenRouter in Settings to analyze images.`
-      );
+    for (const item of configuredList) {
+      try {
+        const adapter = providerRegistry.get(item.provider);
+        if (!adapter.capabilities.supportsVision) continue;
+
+        const model = ModelRouter.resolveModel({
+          provider: item.provider,
+          taskType: 'vision-analysis',
+          preferredModel: options.model || (item.provider === settings.provider ? settings.model : undefined),
+          autoModel: settings.autoModel ?? true,
+        });
+
+        const req: GenerateVisionRequest = {
+          imageBase64,
+          mimeType,
+          prompt,
+          model,
+          taskType: 'vision-analysis',
+        };
+
+        const config: ProviderConfig = {
+          apiKey: item.apiKey,
+          model,
+        };
+
+        return await adapter.generateVision(req, config);
+      } catch (err: any) {
+        lastError = err;
+        if (this.isRateLimitError(err) && configuredList.length > 1) {
+          console.warn(`[AIManager] ${item.provider} vision rate limited. Retrying with secondary vision provider...`);
+          continue;
+        }
+        throw err;
+      }
     }
 
-    const model = ModelRouter.resolveModel({
-      provider,
-      taskType: 'vision-analysis',
-      preferredModel: options.model || (provider === settings.provider ? settings.model : undefined),
-      autoModel: settings.autoModel ?? true,
-    });
-
-    const req: GenerateVisionRequest = {
-      imageBase64,
-      mimeType,
-      prompt,
-      model,
-      taskType: 'vision-analysis',
-    };
-
-    const config: ProviderConfig = {
-      apiKey,
-      model,
-    };
-
-    return adapter.generateVision(req, config);
+    throw lastError || new Error('Failed to generate vision analysis.');
   }
 
   /**
-   * Generates structured JSON output using schema enforcement
+   * Generates structured JSON output with automatic fallback on Rate-Limit (429)
    */
   async generateStructured<T = any>(
     prompt: string, 
     options: AIOptions = {}
   ): Promise<T> {
     const settings = this.getSettings();
-    const { provider, apiKey } = this.getEffectiveProviderAndKey(
-      options.providerOverride,
-      options.apiKeyOverride,
-      false
-    );
+    const configuredList = this.getAllConfiguredProviders(false);
 
-    if (!apiKey) {
+    if (configuredList.length === 0) {
       throw new Error(
         'No AI API Key configured. Please go to Settings and add your API key to generate metadata.'
       );
     }
 
-    const adapter = providerRegistry.get(provider);
+    let lastError: any = null;
 
-    const model = ModelRouter.resolveModel({
-      provider,
-      taskType: options.taskType || 'metadata-generation',
-      preferredModel: options.model || (provider === settings.provider ? settings.model : undefined),
-      autoModel: settings.autoModel ?? true,
-    });
+    for (const item of configuredList) {
+      try {
+        const adapter = providerRegistry.get(item.provider);
+        const model = ModelRouter.resolveModel({
+          provider: item.provider,
+          taskType: options.taskType || 'metadata-generation',
+          preferredModel: options.model || (item.provider === settings.provider ? settings.model : undefined),
+          autoModel: settings.autoModel ?? true,
+        });
 
-    const req: GenerateStructuredRequest = {
-      prompt,
-      systemInstruction: options.systemInstruction,
-      model,
-      taskType: options.taskType || 'metadata-generation',
-    };
+        const req: GenerateStructuredRequest = {
+          prompt,
+          systemInstruction: options.systemInstruction,
+          model,
+          taskType: options.taskType || 'metadata-generation',
+        };
 
-    const config: ProviderConfig = {
-      apiKey,
-      model,
-    };
+        const config: ProviderConfig = {
+          apiKey: item.apiKey,
+          model,
+        };
 
-    return adapter.generateStructured<T>(req, config);
+        return await adapter.generateStructured<T>(req, config);
+      } catch (err: any) {
+        lastError = err;
+        if (this.isRateLimitError(err) && configuredList.length > 1) {
+          console.warn(`[AIManager] ${item.provider} rate limited during structured generation. Retrying fallback...`);
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw lastError || new Error('Failed to generate structured data.');
   }
 }
 

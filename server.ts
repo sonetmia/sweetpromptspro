@@ -184,27 +184,54 @@ async function startServer() {
           return res.status(400).json({ error: 'Groq API key not configured. Please add your key in Settings.' });
         }
 
-        const selectedModel = model || 'llama-3.3-70b-versatile';
-        const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${groqKey}`,
-          },
-          body: JSON.stringify({
-            model: selectedModel,
-            messages: [
-              { role: 'system', content: cleanSystem },
-              { role: 'user', content: prompt }
-            ],
-            response_format: jsonMode ? { type: 'json_object' } : undefined,
-            temperature,
-            max_tokens: maxTokens,
-          }),
-        });
+        const initialModel = model || 'llama-3.1-8b-instant';
+        const candidateModels = Array.from(new Set([initialModel, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it']));
 
-        const text = await handleOpenAIChatResponse(fetchRes, 'Groq');
-        return res.json({ result: text });
+        let lastGroqErr: any = null;
+        for (const candidate of candidateModels) {
+          try {
+            const fetchRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${groqKey}`,
+              },
+              body: JSON.stringify({
+                model: candidate,
+                messages: [
+                  { role: 'system', content: cleanSystem },
+                  { role: 'user', content: prompt }
+                ],
+                response_format: jsonMode ? { type: 'json_object' } : undefined,
+                temperature,
+                max_tokens: maxTokens,
+              }),
+            });
+
+            if (!fetchRes.ok) {
+              const errText = await fetchRes.text();
+              if (fetchRes.status === 404 || errText.includes('does not exist') || errText.includes('model_not_found') || errText.includes('access')) {
+                lastGroqErr = new Error(`Groq model error (${candidate}): ${errText}`);
+                continue; // Try next candidate model
+              }
+              throw new Error(`Groq API Error (${fetchRes.status}): ${errText}`);
+            }
+
+            const data = await fetchRes.json();
+            const text = data.choices?.[0]?.message?.content || '';
+            return res.json({ result: text, modelUsed: candidate });
+          } catch (gErr: any) {
+            lastGroqErr = gErr;
+            if (String(gErr.message).includes('does not exist') || String(gErr.message).includes('access') || String(gErr.message).includes('model_not_found')) {
+              continue;
+            }
+            throw gErr;
+          }
+        }
+
+        if (lastGroqErr) {
+          throw lastGroqErr;
+        }
       }
 
       // Provider: Mistral AI
@@ -214,27 +241,53 @@ async function startServer() {
           return res.status(400).json({ error: 'Mistral API key not configured. Please add your key in Settings.' });
         }
 
-        const selectedModel = model || 'mistral-large-latest';
-        const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${mistralKey}`,
-          },
-          body: JSON.stringify({
-            model: selectedModel,
-            messages: [
-              { role: 'system', content: cleanSystem },
-              { role: 'user', content: prompt }
-            ],
-            response_format: jsonMode ? { type: 'json_object' } : undefined,
-            temperature,
-            max_tokens: maxTokens,
-          }),
-        });
+        const initialModel = (model && model !== 'mistral-large-latest') ? model : 'mistral-small-latest';
+        const candidateModels = Array.from(new Set([initialModel, 'mistral-small-latest', 'open-mistral-7b']));
 
-        const text = await handleOpenAIChatResponse(fetchRes, 'Mistral');
-        return res.json({ result: text });
+        let lastMistralErr: any = null;
+        for (const candidate of candidateModels) {
+          try {
+            const fetchRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${mistralKey}`,
+              },
+              body: JSON.stringify({
+                model: candidate,
+                messages: [
+                  { role: 'system', content: cleanSystem },
+                  { role: 'user', content: prompt }
+                ],
+                response_format: jsonMode ? { type: 'json_object' } : undefined,
+                temperature,
+                max_tokens: maxTokens,
+              }),
+            });
+
+            if (!fetchRes.ok) {
+              const errText = await fetchRes.text();
+              if (fetchRes.status === 403 || errText.includes('subscription tier') || errText.includes('403')) {
+                lastMistralErr = new Error(`Mistral error (${fetchRes.status}): ${errText}`);
+                continue; // Try next candidate model
+              }
+              throw new Error(`Mistral API Error (${fetchRes.status}): ${errText}`);
+            }
+
+            const data = await fetchRes.json();
+            const text = data.choices?.[0]?.message?.content || '';
+            return res.json({ result: text, modelUsed: candidate });
+          } catch (mErr: any) {
+            lastMistralErr = mErr;
+            if (String(mErr.message).includes('subscription tier') || String(mErr.message).includes('403')) {
+              continue;
+            }
+            throw mErr;
+          }
+        }
+
+        if (lastMistralErr) throw lastMistralErr;
+        return res.status(500).json({ error: 'Failed to generate content with Mistral.' });
       }
 
       // Provider: OpenRouter
