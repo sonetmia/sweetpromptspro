@@ -163,62 +163,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  const handleApplyQuickKey = () => {
-    const key = quickPasteKey.trim();
-    if (!key) {
-      showToast('Please paste an API key first');
-      return;
-    }
-
-    const detected = detectedQuickProv || activeProvider;
-    const updatedKeys = { ...apiKeys, [detected]: key };
-    setApiKeys(updatedKeys);
-    setActiveProvider(detected);
-
-    const caps = PROVIDER_CAPABILITIES[detected];
-    const newModel = caps?.defaultTextModel || 'gemini-2.5-flash';
-    setModel(newModel);
-
-    // Auto save immediately
-    const updated: AISettings = {
-      ...settings,
-      provider: detected,
-      apiKey: key,
-      apiKeys: updatedKeys,
-      model: newModel,
-      autoModel,
-      commercialMode,
-      theme,
-      themeStyle,
-    };
-    onUpdateSettings(updated);
-    setQuickPasteKey('');
-    showToast(`✓ Configured & activated ${detected.toUpperCase()} API key!`);
-  };
-
-  const handleSetActiveProvider = (prov: AIProviderName) => {
-    setActiveProvider(prov);
-    const caps = PROVIDER_CAPABILITIES[prov];
-    setModel(caps?.defaultTextModel || 'gemini-2.5-flash');
-    setTestResults(prev => ({ ...prev, [prov]: undefined }));
-
-    const updated: AISettings = {
-      ...settings,
-      provider: prov,
-      apiKey: apiKeys[prov] || '',
-      apiKeys,
-      model: caps?.defaultTextModel || model,
-      autoModel,
-      commercialMode,
-      theme,
-      themeStyle,
-    };
-    onUpdateSettings(updated);
-    showToast(`Active provider switched to ${prov.toUpperCase()}`);
-  };
-
-  const handleTestProvider = async (prov: AIProviderName) => {
-    const key = apiKeys[prov]?.trim();
+  const handleTestSaveAndActivate = async (prov: AIProviderName, keyOverride?: string) => {
+    const key = (keyOverride !== undefined ? keyOverride : apiKeys[prov])?.trim() || '';
     if (!key) {
       showToast(`Please enter an API key for ${prov.toUpperCase()} first`);
       return;
@@ -229,12 +175,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       const activeModel = autoModel ? undefined : model;
       const res = await AIManager.testConnection(prov, key, activeModel);
       setTestResults(prev => ({ ...prev, [prov]: res }));
+
+      // Save key & set as active provider
+      const updatedKeys = { ...apiKeys, [prov]: key };
+      setApiKeys(updatedKeys);
+      setActiveProvider(prov);
+
+      const caps = PROVIDER_CAPABILITIES[prov];
+      const newModel = caps?.defaultTextModel || 'gemini-2.5-flash';
+      setModel(newModel);
+
+      const updatedSettings: AISettings = {
+        ...settings,
+        provider: prov,
+        apiKey: key,
+        apiKeys: updatedKeys,
+        model: newModel,
+        autoModel,
+        commercialMode,
+        theme,
+        themeStyle,
+      };
+
+      onUpdateSettings(updatedSettings);
+
       if (res.success) {
-        showToast(`✓ Connected to ${prov.toUpperCase()} (${res.latencyMs || 0}ms)`);
+        showToast(`✓ Tested, Saved & Activated ${prov.toUpperCase()} (${res.latencyMs || 0}ms)! Entire site ready.`);
       } else {
-        showToast(res.message || `${prov.toUpperCase()} connection failed`);
+        showToast(`⚠️ ${prov.toUpperCase()} saved & activated, but connection test failed: ${res.message || 'Check key'}`);
       }
     } catch (err: any) {
+      const updatedKeys = { ...apiKeys, [prov]: key };
+      setApiKeys(updatedKeys);
+      setActiveProvider(prov);
+
+      const updatedSettings: AISettings = {
+        ...settings,
+        provider: prov,
+        apiKey: key,
+        apiKeys: updatedKeys,
+        model,
+        autoModel,
+        commercialMode,
+        theme,
+        themeStyle,
+      };
+      onUpdateSettings(updatedSettings);
+
       setTestResults(prev => ({
         ...prev,
         [prov]: {
@@ -248,10 +235,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           availableModels: [],
         }
       }));
-      showToast(`Connection failed for ${prov.toUpperCase()}`);
+      showToast(`⚠️ Saved & Activated ${prov.toUpperCase()}, but test failed.`);
     } finally {
       setTestingProvider(null);
     }
+  };
+
+  const handleApplyQuickKey = async () => {
+    const key = quickPasteKey.trim();
+    if (!key) {
+      showToast('Please paste an API key first');
+      return;
+    }
+
+    const detected = detectedQuickProv || activeProvider;
+    setQuickPasteKey('');
+    await handleTestSaveAndActivate(detected, key);
+  };
+
+  const handleSetActiveProvider = (prov: AIProviderName) => {
+    setActiveProvider(prov);
+    const caps = PROVIDER_CAPABILITIES[prov];
+    const newModel = caps?.defaultTextModel || 'gemini-2.5-flash';
+    setModel(newModel);
+    setTestResults(prev => ({ ...prev, [prov]: undefined }));
+
+    const updated: AISettings = {
+      ...settings,
+      provider: prov,
+      apiKey: apiKeys[prov] || '',
+      apiKeys,
+      model: newModel,
+      autoModel,
+      commercialMode,
+      theme,
+      themeStyle,
+    };
+    onUpdateSettings(updated);
+    showToast(`✓ Active provider switched to ${prov.toUpperCase()}`);
+  };
+
+  const handleTestProvider = (prov: AIProviderName) => {
+    handleTestSaveAndActivate(prov);
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
@@ -353,10 +378,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={handleApplyQuickKey}
-            className="px-5 py-2.5 bg-[#C74A43] hover:bg-[#B53F39] text-[#F3EDE2] text-xs font-semibold rounded-[6px] transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-1.5"
+            className="px-5 py-2.5 bg-[#C74A43] hover:bg-[#B53F39] text-[#F3EDE2] text-xs font-semibold rounded-[6px] transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-1.5 shadow-sm"
           >
             <Check className="w-3.5 h-3.5" />
-            <span>Activate Key</span>
+            <span>Test & Save Key</span>
           </button>
         </div>
       </div>
@@ -370,7 +395,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <span>AI Provider Keys & Endpoints</span>
             </h3>
             <p className="text-xs text-[#8C8A86] mt-0.5">
-              Enter your own free or paid API keys. All keys are stored safely in your browser&apos;s localStorage.
+              Enter any AI provider API key. Click <strong>Test & Save</strong> to test connection, save to browser, and activate across the entire website.
             </p>
           </div>
           <span className="text-[11px] text-[#8C8A86] font-mono">
@@ -476,14 +501,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     type="button"
                     onClick={() => handleTestProvider(p.id)}
                     disabled={isTesting || !isConfigured}
-                    className="px-3.5 py-2 bg-[#171E24] hover:bg-[#212A30] border border-[#272D30] text-[#E8E4DC] hover:text-[#F3EDE2] rounded-[6px] text-xs font-medium transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5 shrink-0"
+                    className="px-4 py-2 bg-[#C74A43] hover:bg-[#B53F39] text-[#F3EDE2] rounded-[6px] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
                   >
                     {isTesting ? (
-                      <RefreshCw className="w-3 h-3 animate-spin text-[#C74A43]" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
                     ) : (
-                      <Shield className="w-3 h-3 text-[#8C8A86]" />
+                      <Check className="w-3.5 h-3.5" />
                     )}
-                    <span>{isTesting ? 'Testing...' : 'Test'}</span>
+                    <span>{isTesting ? 'Testing...' : 'Test & Save'}</span>
                   </button>
                 </div>
 
